@@ -37,7 +37,7 @@ export default function OrderConfirmationPage() {
   const handleReorder = () => {
     if (order) {
       localStorage.setItem("cart", JSON.stringify(order.items))
-      router.push("/cart")
+     router.push(`/menu?id=${localStorage.getItem('restaurantId')}&table=${localStorage.getItem('tableNumber')}`)
     }
   }
 
@@ -83,7 +83,7 @@ export default function OrderConfirmationPage() {
 
       {/* Action Buttons */}
       <div className="w-full space-y-3">
-        {/* <button
+        <button
           onClick={handleReorder}
           className="w-full bg-orange-400 hover:bg-orange-500 text-white font-semibold py-4 px-6 rounded-2xl flex items-center justify-center gap-2 transition-colors"
         >
@@ -96,7 +96,7 @@ export default function OrderConfirmationPage() {
             />
           </svg>
           Reorder
-        </button> */}
+        </button>
 
         {/* <button
           onClick={handleViewReceipt}
@@ -206,4 +206,3 @@ function calculateWinner(squares) {
   }
   return null
 }
-
