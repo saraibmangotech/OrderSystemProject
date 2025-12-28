@@ -12,8 +12,14 @@ const menuItems = [
   { id: 4, name: "Coke", price: 2.5, category: "Drinks", rating: 4.8, image: "/refreshing-cola.png" },
   { id: 5, name: "Ice Cream Sundae", price: 5.99, category: "Desserts", rating: 4.7, image: "/ice-cream-sundae.png" },
 ];
+const Skeleton = ({ className }) => (
+  <div
+    className={`animate-pulse rounded-xl bg-gray-300/70 ${className}`}
+  />
+)
 
-const Skeleton = ({ className }) => <div className={`animate-pulse bg-gray-200 rounded ${className}`} />;
+
+
 
 function MenuContent() {
   // ---- States ----

@@ -122,70 +122,106 @@ export default function CartPage() {
         {/* Items */}
         <div>
           <h2 className="text-sm font-semibold mb-3 text-gray-700">Your Items</h2>
-          {loading ? (
-            <div className="space-y-3">
-              {[...Array(2)].map((_, i) => (
-                <div key={i} className="bg-white rounded-2xl p-4 flex items-center gap-3 shadow-sm border border-gray-100 animate-pulse">
-                  <div className="w-20 h-20 bg-gray-200 rounded-xl" />
-                  <div className="flex-1 min-w-0 space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-3/4" />
-                    <div className="h-3 bg-gray-200 rounded w-1/2" />
-                    <div className="h-5 bg-gray-200 rounded w-1/4" />
-                  </div>
-                </div>
-              ))}
+        {loading ? (
+        <div className="space-y-3">
+          {[...Array(2)].map((_, i) => (
+            <div
+              key={i}
+              className="bg-white rounded-2xl p-4 flex items-center gap-3 shadow-sm border border-gray-100"
+            >
+              {/* Image Skeleton */}
+              <div className="w-20 h-20 rounded-xl bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] animate-pulse" />
+
+              {/* Text Skeleton */}
+              <div className="flex-1 min-w-0 space-y-2">
+                <div className="h-4 w-3/4 rounded bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] animate-pulse" />
+                <div className="h-3 w-1/2 rounded bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] animate-pulse" />
+                <div className="h-5 w-1/4 rounded bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] animate-pulse" />
+              </div>
+
+              {/* Actions Skeleton */}
+              <div className="flex items-center gap-1">
+                <div className="w-9 h-9 rounded-full bg-gray-200 animate-pulse" />
+                <div className="w-8 h-4 rounded bg-gray-200 animate-pulse" />
+                <div className="w-9 h-9 rounded-full bg-gray-200 animate-pulse" />
+                <div className="w-9 h-9 rounded bg-gray-200 animate-pulse" />
+              </div>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {cart.map((item, index) => (
-                <div
-                  key={index}
-                  className="bg-white rounded-2xl p-4 flex items-center gap-3 shadow-sm border border-gray-100"
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {cart.map((item, index) => (
+            <div
+              key={index}
+              className="bg-white rounded-2xl p-4 flex items-center gap-3 shadow-sm border border-gray-100"
+            >
+              {/* Image */}
+              <div className="w-20 h-20 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
+                <img
+                  src={item.image || "/placeholder.svg"}
+                  alt={item.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-gray-800 text-sm mb-1">
+                  {item.name}
+                </h3>
+                <p className="text-xs text-gray-500 mb-1">
+                  {item.size && `${item.size}, `}
+                  {item.spiceLevel && `${item.spiceLevel}`}
+                </p>
+                <p className="text-orange-400 font-bold text-base">
+                  {((item.customPrice || item.price) * item.quantity).toFixed(2)}
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center">
+                <button
+                  onClick={() => updateQuantity(index, -1)}
+                  className="w-9 h-9 rounded-full border-2 border-gray-200 flex items-center justify-center hover:bg-gray-50 active:scale-95 transition-all font-semibold text-gray-700"
                 >
-                  <div className="w-20 h-20 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
-                    <img src={item.image || "/placeholder.svg"} alt={item.name} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-800 text-sm mb-1">{item.name}</h3>
-                    <p className="text-xs text-gray-500 mb-1">
-                      {item.size && `${item.size}, `}
-                      {item.spiceLevel && `${item.spiceLevel}`}
-                    </p>
-                    <p className="text-orange-400 font-bold text-base">
-                      {((item.customPrice || item.price) * item.quantity).toFixed(2)}
-                    </p>
-                  </div>
-                  <div className="flex items-center ">
-                    <button
-                      onClick={() => updateQuantity(index, -1)}
-                      className="w-9 h-9 rounded-full border-2 border-gray-200 flex items-center justify-center hover:bg-gray-50 active:scale-95 transition-all font-semibold text-gray-700"
-                    >
-                      -
-                    </button>
-                    <span className="w-8 text-center font-bold text-gray-800">{item.quantity}</span>
-                    <button
-                      onClick={() => updateQuantity(index, 1)}
-                      className="w-9 h-9 rounded-full border-2 border-gray-200 flex items-center justify-center hover:bg-gray-50 active:scale-95 transition-all font-semibold text-gray-700"
-                    >
-                      +
-                    </button>
-                    <button
-                      onClick={() => removeItem(index)}
-                      className="ml-1 text-red-500 hover:text-red-600 w-9 h-9 flex items-center justify-center active:scale-95 transition-all"
-                    >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              ))}
+                  -
+                </button>
+
+                <span className="w-8 text-center font-bold text-gray-800">
+                  {item.quantity}
+                </span>
+
+                <button
+                  onClick={() => updateQuantity(index, 1)}
+                  className="w-9 h-9 rounded-full border-2 border-gray-200 flex items-center justify-center hover:bg-gray-50 active:scale-95 transition-all font-semibold text-gray-700"
+                >
+                  +
+                </button>
+
+                <button
+                  onClick={() => removeItem(index)}
+                  className="ml-1 text-red-500 hover:text-red-600 w-9 h-9 flex items-center justify-center active:scale-95 transition-all"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
-          )}
+          ))}
+        </div>
+      )}
         </div>
 
         {/* Order Summary */}
