@@ -1,7 +1,7 @@
 "use client"
 
+import { Suspense, useEffect, useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
 import moment from "moment"
 
 const getRemainingTime = (order) => {
@@ -21,7 +21,8 @@ const getRemainingTime = (order) => {
   return `${minutes}:${seconds}`
 }
 
-export default function OrderDetailPage() {
+// Inner component that uses useSearchParams
+function OrderDetailInner() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const orderId = searchParams.get("orderId")
@@ -184,5 +185,14 @@ export default function OrderDetailPage() {
         )}
       </div>
     </div>
+  )
+}
+
+// Wrap the inner component in Suspense inside the same page
+export default function OrderDetailPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <OrderDetailInner />
+    </Suspense>
   )
 }
