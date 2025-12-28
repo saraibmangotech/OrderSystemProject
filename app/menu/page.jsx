@@ -53,10 +53,13 @@ export default function MenuPage() {
   const [cart, setCart] = useState([])
   const [temp, setTemp] = useState(false)
   const router = useRouter()
-    const searchParams = useSearchParams()
+   
+  const searchParams = useSearchParams() // ✅ works only on client
+
+  useEffect(() => {
     const restaurantId = searchParams.get("id")
     const table = searchParams.get("table")
-  useEffect(() => {
+
  localStorage.setItem('restaurantId',restaurantId)
  
   localStorage.setItem('table',table)
