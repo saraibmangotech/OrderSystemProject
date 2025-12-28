@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { showSuccessToast } from "../../components/toaster"
+import { showSuccessToast } from "@/components/toaster"
 
 const menuItems = [
   {
@@ -47,22 +47,22 @@ const menuItems = [
   },
 ]
 
-export default function MenuPage() {
+function MenuContent() {
   const [tableNumber, setTableNumber] = useState("")
   const [activeCategory, setActiveCategory] = useState("Burgers")
   const [cart, setCart] = useState([])
   const [temp, setTemp] = useState(false)
   const router = useRouter()
-   
+
   const searchParams = useSearchParams() // ✅ works only on client
 
   useEffect(() => {
     const restaurantId = searchParams.get("id")
     const table = searchParams.get("table")
 
- localStorage.setItem('restaurantId',restaurantId)
- 
-  localStorage.setItem('table',table)
+    localStorage.setItem("restaurantId", restaurantId)
+
+    localStorage.setItem("table", table)
     if (!table) router.push("/")
     else setTableNumber(table)
 
@@ -70,8 +70,7 @@ export default function MenuPage() {
     if (savedCart) setCart(JSON.parse(savedCart))
   }, [temp])
 
-  const getCartCount = () =>
-    cart.reduce((sum, item) => sum + item.quantity, 0)
+  const getCartCount = () => cart.reduce((sum, item) => sum + item.quantity, 0)
 
   const getItemQty = (id) => {
     const found = cart.find((i) => i.id === id)
@@ -109,19 +108,15 @@ export default function MenuPage() {
     setTemp(!temp)
   }
 
-  const getCartTotal = () =>
-    cart.reduce((sum, i) => sum + i.price * i.quantity, 0)
+  const getCartTotal = () => cart.reduce((sum, i) => sum + i.price * i.quantity, 0)
 
   return (
     <div className="min-h-screen bg-white pb-28">
-
       {/* HEADER (UNCHANGED) */}
       <div className="sticky top-0 z-10 bg-white p-5 flex items-center justify-between border-b shadow-sm">
         <div>
           <span className="text-sm text-gray-500">Table:</span>
-          <span className="ml-2 text-xl font-bold text-orange-400">
-            {tableNumber}
-          </span>
+          <span className="ml-2 text-xl font-bold text-orange-400">{tableNumber}</span>
         </div>
 
         <button
@@ -139,18 +134,16 @@ export default function MenuPage() {
 
       {/* CATEGORIES (UNCHANGED) */}
       {/* YOUR EXISTING CATEGORIES CODE REMAINS EXACTLY SAME */}
-       <div className="p-5">
+      <div className="p-5">
         <h2 className="text-xl font-bold mb-4 text-gray-800">Categories</h2>
 
         <div className="flex gap-3 overflow-x-auto pb-2 -mx-5 px-5">
-
           {/* Burgers */}
           <button
             onClick={() => setActiveCategory("Burgers")}
-            className={`flex flex-col items-center justify-center min-w-[88px] h-24 rounded-2xl transition-all active:scale-95 ${activeCategory === "Burgers"
-                ? "bg-orange-400 text-white shadow-lg"
-                : "bg-gray-50 text-gray-600"
-              }`}
+            className={`flex flex-col items-center justify-center min-w-[88px] h-24 rounded-2xl transition-all active:scale-95 ${
+              activeCategory === "Burgers" ? "bg-orange-400 text-white shadow-lg" : "bg-gray-50 text-gray-600"
+            }`}
           >
             <svg className="w-9 h-9 mb-1" viewBox="0 0 64 64" fill="currentColor">
               <path d="M8 30c0-8.8 10.7-16 24-16s24 7.2 24 16H8zm48 6H8v6h48v-6zm-4 12H12c0 4.4 8.9 8 20 8s20-3.6 20-8z" />
@@ -161,10 +154,9 @@ export default function MenuPage() {
           {/* Drinks */}
           <button
             onClick={() => setActiveCategory("Drinks")}
-            className={`flex flex-col items-center justify-center min-w-[88px] h-24 rounded-2xl transition-all active:scale-95 ${activeCategory === "Drinks"
-                ? "bg-orange-400 text-white shadow-lg"
-                : "bg-gray-50 text-gray-600"
-              }`}
+            className={`flex flex-col items-center justify-center min-w-[88px] h-24 rounded-2xl transition-all active:scale-95 ${
+              activeCategory === "Drinks" ? "bg-orange-400 text-white shadow-lg" : "bg-gray-50 text-gray-600"
+            }`}
           >
             <svg className="w-9 h-9 mb-1" viewBox="0 0 64 64" fill="currentColor">
               <path d="M22 2v6h4v6h4V8h4V2h-12zM16 16l4 44h24l4-44H16z" />
@@ -175,20 +167,17 @@ export default function MenuPage() {
           {/* Desserts */}
           <button
             onClick={() => setActiveCategory("Desserts")}
-            className={`flex flex-col items-center justify-center min-w-[88px] h-24 rounded-2xl transition-all active:scale-95 ${activeCategory === "Desserts"
-                ? "bg-orange-400 text-white shadow-lg"
-                : "bg-gray-50 text-gray-600"
-              }`}
+            className={`flex flex-col items-center justify-center min-w-[88px] h-24 rounded-2xl transition-all active:scale-95 ${
+              activeCategory === "Desserts" ? "bg-orange-400 text-white shadow-lg" : "bg-gray-50 text-gray-600"
+            }`}
           >
             <svg className="w-9 h-9 mb-1" viewBox="0 0 64 64" fill="currentColor">
               <path d="M12 28h40v10H12V28zm4 14h32v6H16v-6zm6-26c0-4.4 4.5-8 10-8s10 3.6 10 8H22z" />
             </svg>
             <span className="text-xs font-semibold">Desserts</span>
           </button>
-
         </div>
       </div>
-
 
       {/* PRODUCTS */}
       <div className="px-5">
@@ -196,11 +185,7 @@ export default function MenuPage() {
 
         <div className="grid grid-cols-2 gap-4 pb-4">
           {menuItems
-            .filter((item) =>
-              activeCategory === "Burgers"
-                ? true
-                : item.category === activeCategory
-            )
+            .filter((item) => (activeCategory === "Burgers" ? true : item.category === activeCategory))
             .map((item) => {
               const qty = getItemQty(item.id)
 
@@ -210,19 +195,12 @@ export default function MenuPage() {
                   className="bg-white border-2 border-gray-100 rounded-2xl overflow-hidden shadow-sm relative"
                 >
                   <div className="aspect-square bg-gray-50">
-                    <img
-                      src={item.image}
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={item.image || "/placeholder.svg"} className="w-full h-full object-cover" />
                   </div>
 
                   <div className="p-3 pb-4">
-                    <h3 className="font-semibold text-sm text-gray-800 mb-1 line-clamp-2">
-                      {item.name}
-                    </h3>
-                    <p className="text-orange-400 font-bold text-base mb-2">
-                      ${item.price.toFixed(2)}
-                    </p>
+                    <h3 className="font-semibold text-sm text-gray-800 mb-1 line-clamp-2">{item.name}</h3>
+                    <p className="text-orange-400 font-bold text-base mb-2">${item.price.toFixed(2)}</p>
                   </div>
 
                   {/* FOODPANDA CONTROL – SAME POSITION */}
@@ -239,28 +217,16 @@ export default function MenuPage() {
                           viewBox="0 0 24 24"
                           strokeWidth={2.5}
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M12 4v16m8-8H4"
-                          />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                         </svg>
                       </button>
                     ) : (
                       <div className="flex items-center bg-white rounded-full shadow-lg h-9 px-2 transition-all duration-200">
-                        <button
-                          onClick={() => decreaseQty(item)}
-                          className="text-xl px-2 text-gray-700"
-                        >
+                        <button onClick={() => decreaseQty(item)} className="text-xl px-2 text-gray-700">
                           −
                         </button>
-                        <span className="px-1 font-semibold text-sm">
-                          {qty}
-                        </span>
-                        <button
-                          onClick={() => increaseQty(item)}
-                          className="text-xl px-2 text-gray-700"
-                        >
+                        <span className="px-1 font-semibold text-sm">{qty}</span>
+                        <button onClick={() => increaseQty(item)} className="text-xl px-2 text-gray-700">
                           +
                         </button>
                       </div>
@@ -287,5 +253,13 @@ export default function MenuPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function MenuPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white flex items-center justify-center">Loading menu...</div>}>
+      <MenuContent />
+    </Suspense>
   )
 }
