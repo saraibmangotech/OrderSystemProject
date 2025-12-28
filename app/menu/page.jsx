@@ -41,7 +41,7 @@ function MenuContent() {
   // ---- Initialize cart/orders/table ----
   useEffect(() => {
     const tableStored = localStorage.getItem("tableNumber");
-    if (!tableStored) router.push("/");
+    if (!table) router.push("/");
 
     const savedCart = localStorage.getItem("cart");
     if (savedCart) setCart(JSON.parse(savedCart));
