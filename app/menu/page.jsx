@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { showSuccessToast } from "../../components/toaster";
 import moment from "moment";
@@ -15,7 +15,7 @@ const menuItems = [
 
 const Skeleton = ({ className }) => <div className={`animate-pulse bg-gray-200 rounded ${className}`} />;
 
-export default function MenuPage() {
+function MenuContent() {
   // ---- States ----
   const [tableNumber, setTableNumber] = useState("");
   const [activeCategory, setActiveCategory] = useState("Burgers");
@@ -63,7 +63,6 @@ export default function MenuPage() {
   const latestOrder = orders[orders.length - 1];
   const getRemainingMinutes = (order) => {
     if (!order?.timestamp || !order?.estimate_time) return null;
-
     const placedAt = moment(order?.timestamp);
     const estimateMinutes = parseInt(order?.estimate_time);
     const readyAt = placedAt.clone().add(estimateMinutes, "minutes");
@@ -110,7 +109,6 @@ export default function MenuPage() {
   const getCartTotal = () => cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const ordersCount = orders.length;
 
-  // ---- JSX ----
   return (
     <div className="min-h-screen bg-white pb-28">
       {/* Orders Popup */}
@@ -251,9 +249,7 @@ export default function MenuPage() {
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`flex flex-col items-center justify-center min-w-[88px] h-24 rounded-2xl transition-all active:scale-95 ${
-                    activeCategory === cat ? "bg-orange-400 text-white shadow-lg" : "bg-gray-50 text-gray-600"
-                  }`}
+                  className={`flex flex-col items-center justify-center min-w-[88px] h-24 rounded-2xl transition-all active:scale-95 ${activeCategory === cat ? "bg-orange-400 text-white shadow-lg" : "bg-gray-50 text-gray-600"}`}
                 >
                   <span className="text-xs font-semibold">{cat}</span>
                 </button>
@@ -315,7 +311,7 @@ export default function MenuPage() {
       </div>
 
       {/* Bottom Bar */}
-  {!loading && (
+   {!loading && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50">
           <div className=" mx-auto px-3 py-3">
             <div className="flex gap-2">
@@ -390,7 +386,15 @@ export default function MenuPage() {
           </div>
         </div>
       )}
-
     </div>
+  );
+}
+
+// ✅ Wrap component in Suspense to fix useSearchParams issue
+export default function MenuPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <MenuContent />
+    </Suspense>
   );
 }
