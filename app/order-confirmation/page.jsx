@@ -36,7 +36,7 @@ export default function OrderConfirmationPage() {
 
   const handleReorder = () => {
     if (order) {
-      localStorage.setItem("cart", JSON.stringify(order.items))
+      // localStorage.setItem("cart", JSON.stringify(order.items))
      router.push(`/menu?id=${localStorage.getItem('restaurantId')}&table=${localStorage.getItem('tableNumber')}`)
     }
   }

@@ -142,7 +142,7 @@ function OrderDetailInner() {
                     <span>{item.quantity}×</span>
                     <span>{item.name}</span>
                     <span className="font-bold text-orange-900 ml-1">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      ${(item?.base_price * item.quantity).toFixed(2)}
                     </span>
                   </div>
                 ))}
@@ -158,10 +158,10 @@ function OrderDetailInner() {
                 <span>${order.subtotal.toFixed(2)}</span>
               </div>
 
-              <div className="flex justify-between text-sm">
+              {/* <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Tip</span>
                 <span>${order.tip.toFixed(2)}</span>
-              </div>
+              </div> */}
 
               <div className="border-t pt-3 flex justify-between font-bold text-lg">
                 <span>Total Paid</span>

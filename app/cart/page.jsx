@@ -159,7 +159,7 @@ export default function CartPage() {
               {/* Image */}
               <div className="w-20 h-20 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
                 <img
-                  src={item.image || "/placeholder.svg"}
+                  src={item?.image || "/placeholder.svg"}
                   alt={item.name}
                   className="w-full h-full object-cover"
                 />
@@ -175,7 +175,7 @@ export default function CartPage() {
                   {item.spiceLevel && `${item.spiceLevel}`}
                 </p>
                 <p className="text-orange-400 font-bold text-base">
-                  {((item.customPrice || item.price) * item.quantity).toFixed(2)}
+                  ${((item.customPrice || item.price) * item.quantity).toFixed(2)}
                 </p>
               </div>
 
@@ -230,11 +230,11 @@ export default function CartPage() {
           <div className="space-y-3 text-base">
             <div className="flex justify-between text-gray-600">
               <span>Subtotal</span>
-              <span className="font-medium">{calculateSubtotal().toFixed(2)}</span>
+              <span className="font-medium">${calculateSubtotal().toFixed(2)}</span>
             </div>
             <div className="border-t-2 pt-3 flex justify-between font-bold text-orange-400 text-lg">
               <span>Total</span>
-              <span>{calculateTotal().toFixed(2)}</span>
+              <span>${calculateTotal().toFixed(2)}</span>
             </div>
           </div>
         </div>
@@ -248,7 +248,7 @@ export default function CartPage() {
             disabled={cart.length === 0}
             className="w-full bg-orange-400 active:bg-orange-500 disabled:bg-gray-300 text-white font-bold py-5 rounded-2xl transition-all active:scale-98 shadow-lg disabled:shadow-none text-lg"
           >
-            Place Order - {calculateTotal().toFixed(2)}
+            Place Order - ${calculateTotal().toFixed(2)}
           </button>
         </div>
       </div>
