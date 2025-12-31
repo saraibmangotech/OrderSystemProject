@@ -3,6 +3,8 @@
 import { Suspense, useEffect, useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import moment from "moment"
+import Colors from "../assets/colors"
+
 
 const getRemainingTime = (order) => {
   if (!order?.timestamp || !order?.estimate_time) return "00:00"
@@ -21,7 +23,6 @@ const getRemainingTime = (order) => {
   return `${minutes}:${seconds}`
 }
 
-// Inner component that uses useSearchParams
 function OrderDetailInner() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -48,15 +49,18 @@ function OrderDetailInner() {
     return () => clearInterval(interval)
   }, [order])
 
-  // Skeleton component
   const SkeletonCard = () => (
     <div className="bg-white rounded-2xl p-5 shadow animate-pulse space-y-3">
       <div className="h-5 bg-gray-300 rounded w-1/3"></div>
       <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-      <div className="h-10 bg-orange-100 rounded-xl mt-3"></div>
+      <div className={`h-10 rounded-xl mt-3`} style={{ backgroundColor: `${Colors.brown}30` }}></div>
       <div className="flex flex-wrap gap-2 mt-3">
         {Array(3).fill(0).map((_, i) => (
-          <div key={i} className="h-8 w-20 bg-orange-100 rounded-full"></div>
+          <div
+            key={i}
+            className="h-8 w-20 rounded-full"
+            style={{ backgroundColor: `${Colors.brown}30` }}
+          ></div>
         ))}
       </div>
       <div className="h-5 bg-gray-200 rounded w-2/3 mt-3"></div>
@@ -106,10 +110,13 @@ function OrderDetailInner() {
             {/* Order Status Card */}
             <div className="bg-white rounded-2xl p-5 shadow">
               <div className="flex justify-between items-center mb-3">
-                <span className="text-sm font-bold text-orange-500">
+                <span className="text-sm font-bold" style={{ color: Colors.brown }}>
                   Order #{order.id}
                 </span>
-                <span className="px-3 py-1 text-xs font-bold uppercase rounded-full bg-orange-100 text-orange-600">
+                <span
+                  className="px-3 py-1 text-xs font-bold uppercase rounded-full"
+                  style={{ backgroundColor: `${Colors.brown}30`, color: Colors.brown }}
+                >
                   {order.status}
                 </span>
               </div>
@@ -122,32 +129,52 @@ function OrderDetailInner() {
                 })}
               </p>
 
-              <div className="text-center bg-orange-50 rounded-xl py-4">
+              <div className="text-center rounded-xl py-4" style={{ backgroundColor: `${Colors.brown}10` }}>
                 <p className="text-xs text-gray-500">Estimated Time</p>
-                <p className="text-2xl font-bold text-orange-500 mt-1">
+                <p className="text-2xl font-bold mt-1" style={{ color: Colors.brown }}>
                   {remainingTime === "Ready" ? "Ready 🍽️" : remainingTime}
                 </p>
               </div>
             </div>
 
             {/* Items */}
-            <div className="bg-white rounded-2xl p-5 shadow">
-              <h3 className="font-bold mb-3">Items</h3>
-              <div className="flex flex-wrap gap-2">
-                {order.items.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-orange-100 text-orange-700 px-3 py-2 rounded-full text-xs font-semibold flex items-center gap-1"
-                  >
-                    <span>{item.quantity}×</span>
-                    <span>{item.name}</span>
-                    <span className="font-bold text-orange-900 ml-1">
-                      ${(item?.base_price * item.quantity).toFixed(2)}
-                    </span>
-                  </div>
-                ))}
+          {/* Items */}
+<div className="bg-white rounded-2xl p-5 shadow">
+  <h3 className="font-bold mb-3">Items</h3>
+  <div className="space-y-3">
+    {order.items.map((item, idx) => (
+      <div key={idx} className="bg-gray-50 rounded-xl p-3">
+        <div
+          className="px-3 py-2 rounded-full text-xs font-semibold flex items-center gap-1 mb-2"
+          style={{ backgroundColor: `${Colors.brown}30`, color: Colors.brown }}
+        >
+          <span>{item.quantity}×</span>
+          <span>{item.name}</span>
+          <span className="font-bold ml-1" style={{ color: Colors.brown }}>
+            ${((item.base_price || item.price) * item.quantity).toFixed(2)}
+          </span>
+        </div>
+
+        {/* Selected Addons */}
+        {item.selectedAddons && item.selectedAddons.length > 0 && (
+          <div className="ml-4 space-y-1">
+            {item.selectedAddons.map((addon) => (
+              <div
+                key={addon._id}
+                className="px-2 py-1 rounded-full text-[10px] flex items-center gap-1"
+                style={{ backgroundColor: `${Colors.brown}10`, color: Colors.brown }}
+              >
+                <span>+{addon.name}</span>
+                <span className="font-bold ml-1">${addon.price.toFixed(2)}</span>
               </div>
-            </div>
+            ))}
+          </div>
+        )}
+      </div>
+    ))}
+  </div>
+</div>
+
 
             {/* Payment Summary */}
             <div className="bg-white rounded-2xl p-5 shadow space-y-2">
@@ -157,11 +184,6 @@ function OrderDetailInner() {
                 <span className="text-gray-500">Subtotal</span>
                 <span>${order.subtotal.toFixed(2)}</span>
               </div>
-
-              {/* <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Tip</span>
-                <span>${order.tip.toFixed(2)}</span>
-              </div> */}
 
               <div className="border-t pt-3 flex justify-between font-bold text-lg">
                 <span>Total Paid</span>
@@ -188,7 +210,7 @@ function OrderDetailInner() {
   )
 }
 
-// Wrap the inner component in Suspense inside the same page
+// Wrap the inner component in Suspense
 export default function OrderDetailPage() {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>

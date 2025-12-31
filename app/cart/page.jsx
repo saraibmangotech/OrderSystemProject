@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Colors from "../assets/colors"
+
 
 export default function CartPage() {
   const [cart, setCart] = useState([])
+  const [expandedItems, setExpandedItems] = useState({})
   const [tableNumber, setTableNumber] = useState("")
   const [tipPercentage, setTipPercentage] = useState(0)
   const [customTip, setCustomTip] = useState("")
@@ -16,7 +19,6 @@ export default function CartPage() {
   const router = useRouter()
 
   useEffect(() => {
-    // simulate loading
     setTimeout(() => {
       const table = localStorage.getItem("tableNumber")
       setTableNumber(table || "")
@@ -40,10 +42,40 @@ export default function CartPage() {
     localStorage.setItem("cart", JSON.stringify(newCart))
   }
 
+  const toggleAddon = (itemIndex, addonId, groupId) => {
+    const newCart = [...cart]
+    const item = newCart[itemIndex]
+
+    const selectedAddonIndex = item.selectedAddons.findIndex((addon) => addon._id === addonId)
+
+    if (selectedAddonIndex >= 0) {
+      item.selectedAddons.splice(selectedAddonIndex, 1)
+    } else {
+      const addonGroup = item.addons.find((group) => group._id === groupId)
+      if (addonGroup) {
+        const addonDetails = addonGroup.addons.find((addon) => addon._id === addonId)
+        if (addonDetails) {
+          item.selectedAddons.push({
+            ...addonDetails,
+            groupName: addonGroup.name,
+            selectionType: addonGroup.selection_type,
+            maxSelection: addonGroup.max_selection,
+            minSelection: addonGroup.min_selection,
+            groupId: addonGroup._id,
+          })
+        }
+      }
+    }
+
+    setCart(newCart)
+    localStorage.setItem("cart", JSON.stringify(newCart))
+  }
+
   const calculateSubtotal = () => {
     return cart.reduce((total, item) => {
-      const itemPrice = item.customPrice || item.price
-      return total + itemPrice * item.quantity
+      const basePrice = item.customPrice || item.price
+      const addonsPrice = item.selectedAddons?.reduce((sum, addon) => sum + addon.price, 0) || 0
+      return total + (basePrice + addonsPrice) * item.quantity
     }, 0)
   }
 
@@ -61,7 +93,6 @@ export default function CartPage() {
 
   const confirmOrder = () => {
     if (!showUserPopup) {
-      // show the popup first
       setShowUserPopup(true)
       return
     }
@@ -90,6 +121,17 @@ export default function CartPage() {
     router.push("/order-confirmation")
   }
 
+  const toggleItemExpand = (index) => {
+    setExpandedItems((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }))
+  }
+
+  const isAddonSelected = (itemIndex, addonId) => {
+    return cart[itemIndex]?.selectedAddons?.some((addon) => addon._id === addonId) || false
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 pb-32 relative">
       {/* Header */}
@@ -105,8 +147,8 @@ export default function CartPage() {
           </button>
           <h1 className="text-xl font-bold text-gray-800">Your Order</h1>
         </div>
-        <div className="bg-orange-50 p-4 rounded-xl">
-          <p className="text-sm text-orange-600 font-medium leading-relaxed">
+        <div className="p-4 rounded-xl" style={{ backgroundColor: `${Colors.brown}20` }}>
+          <p className="text-sm font-medium leading-relaxed" style={{ color: Colors.brown }}>
             WristWizards Integration with your restaurant's systems saves time & reduces errors.
           </p>
         </div>
@@ -116,112 +158,154 @@ export default function CartPage() {
         {/* Table Number */}
         <div>
           <h2 className="text-sm font-semibold mb-2 text-gray-700">Table Number</h2>
-          <div className="text-3xl font-bold text-orange-400">{tableNumber}</div>
+          <div className="text-3xl font-bold" style={{ color: Colors.brown }}>{tableNumber}</div>
         </div>
 
         {/* Items */}
         <div>
           <h2 className="text-sm font-semibold mb-3 text-gray-700">Your Items</h2>
-        {loading ? (
-        <div className="space-y-3">
-          {[...Array(2)].map((_, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-2xl p-4 flex items-center gap-3 shadow-sm border border-gray-100"
-            >
-              {/* Image Skeleton */}
-              <div className="w-20 h-20 rounded-xl bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] animate-pulse" />
-
-              {/* Text Skeleton */}
-              <div className="flex-1 min-w-0 space-y-2">
-                <div className="h-4 w-3/4 rounded bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] animate-pulse" />
-                <div className="h-3 w-1/2 rounded bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] animate-pulse" />
-                <div className="h-5 w-1/4 rounded bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] animate-pulse" />
-              </div>
-
-              {/* Actions Skeleton */}
-              <div className="flex items-center gap-1">
-                <div className="w-9 h-9 rounded-full bg-gray-200 animate-pulse" />
-                <div className="w-8 h-4 rounded bg-gray-200 animate-pulse" />
-                <div className="w-9 h-9 rounded-full bg-gray-200 animate-pulse" />
-                <div className="w-9 h-9 rounded bg-gray-200 animate-pulse" />
-              </div>
+          {loading ? (
+            <div className="space-y-3">
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="bg-white rounded-2xl p-4 flex items-center gap-3 shadow-sm border border-gray-100">
+                  <div className="w-20 h-20 rounded-xl bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] animate-pulse" />
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <div className="h-4 w-3/4 rounded bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] animate-pulse" />
+                    <div className="h-3 w-1/2 rounded bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] animate-pulse" />
+                    <div className="h-5 w-1/4 rounded bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] animate-pulse" />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-9 h-9 rounded-full bg-gray-200 animate-pulse" />
+                    <div className="w-8 h-4 rounded bg-gray-200 animate-pulse" />
+                    <div className="w-9 h-9 rounded-full bg-gray-200 animate-pulse" />
+                    <div className="w-9 h-9 rounded bg-gray-200 animate-pulse" />
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {cart.map((item, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-2xl p-4 flex items-center gap-3 shadow-sm border border-gray-100"
-            >
-              {/* Image */}
-              <div className="w-20 h-20 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
-                <img
-                  src={item?.image || "/placeholder.svg"}
-                  alt={item.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+          ) : (
+            <div className="space-y-3">
+              {cart.map((item, itemIndex) => (
+                <div key={itemIndex}>
+                  {/* Item Card */}
+                  <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                    <div className="flex items-center gap-3">
+                      {/* Image */}
+                      <div className="w-20 h-20 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
+                        <img src={item?.image || "/placeholder.svg"} alt={item.name} className="w-full h-full object-cover" />
+                      </div>
 
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-gray-800 text-sm mb-1">
-                  {item.name}
-                </h3>
-                <p className="text-xs text-gray-500 mb-1">
-                  {item.size && `${item.size}, `}
-                  {item.spiceLevel && `${item.spiceLevel}`}
-                </p>
-                <p className="text-orange-400 font-bold text-base">
-                  ${((item.customPrice || item.price) * item.quantity).toFixed(2)}
-                </p>
-              </div>
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-800 text-sm mb-1">{item.name}</h3>
+                        <p className="text-xs text-gray-500 mb-2">
+                          {item.size && `${item.size}, `}
+                          {item.spiceLevel && `${item.spiceLevel}`}
+                        </p>
+                        <p className="font-bold text-base" style={{ color: Colors.brown }}>
+                          ${(
+                            ((item.customPrice || item.price) +
+                              (item.selectedAddons?.reduce((sum, addon) => sum + addon.price, 0) || 0)) *
+                            item.quantity
+                          ).toFixed(2)}
+                        </p>
+                      </div>
 
-              {/* Actions */}
-              <div className="flex items-center">
-                <button
-                  onClick={() => updateQuantity(index, -1)}
-                  className="w-9 h-9 rounded-full border-2 border-gray-200 flex items-center justify-center hover:bg-gray-50 active:scale-95 transition-all font-semibold text-gray-700"
-                >
-                  -
-                </button>
+                      {/* Actions */}
+                      <div className="flex items-center">
+                        <button
+                          onClick={() => updateQuantity(itemIndex, -1)}
+                          className="w-9 h-9 rounded-full border-2 border-gray-200 flex items-center justify-center hover:bg-gray-50 active:scale-95 transition-all font-semibold text-gray-700"
+                        >
+                          -
+                        </button>
+                        <span className="w-8 text-center font-bold text-gray-800">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(itemIndex, 1)}
+                          className="w-9 h-9 rounded-full border-2 border-gray-200 flex items-center justify-center hover:bg-gray-50 active:scale-95 transition-all font-semibold text-gray-700"
+                        >
+                          +
+                        </button>
+                        <button
+                          onClick={() => removeItem(itemIndex)}
+                          className="ml-1 text-red-500 hover:text-red-600 w-9 h-9 flex items-center justify-center active:scale-95 transition-all"
+                        >
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
 
-                <span className="w-8 text-center font-bold text-gray-800">
-                  {item.quantity}
-                </span>
+                    {item.addons && item.addons.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-gray-100">
+                        <button
+                          onClick={() => toggleItemExpand(itemIndex)}
+                          className="flex items-center justify-between w-full text-sm font-semibold transition-colors"
+                          style={{ color: Colors.brown }}
+                        >
+                          <span>Customize ({item.selectedAddons?.length || 0} selected)</span>
+                          <svg
+                            className={`w-5 h-5 transition-transform ${expandedItems[itemIndex] ? "rotate-180" : ""}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                          </svg>
+                        </button>
 
-                <button
-                  onClick={() => updateQuantity(index, 1)}
-                  className="w-9 h-9 rounded-full border-2 border-gray-200 flex items-center justify-center hover:bg-gray-50 active:scale-95 transition-all font-semibold text-gray-700"
-                >
-                  +
-                </button>
+                        {/* Expanded Addons List */}
+                        {expandedItems[itemIndex] && (
+                          <div className="mt-4 space-y-4">
+                            {item.addons.map((group) => (
+                              <div key={group._id} className="bg-gray-50 p-4 rounded-xl">
+                                <h4 className="text-sm font-semibold text-gray-800 mb-3">
+                                  {group.name}
+                                  {group.required && <span className="text-red-500 ml-1">*</span>}
+                                </h4>
+                                <p className="text-xs text-gray-500 mb-3">
+                                  Select {group.min_selection}
+                                  {group.max_selection > group.min_selection ? `-${group.max_selection}` : ""}
+                                </p>
 
-                <button
-                  onClick={() => removeItem(index)}
-                  className="ml-1 text-red-500 hover:text-red-600 w-9 h-9 flex items-center justify-center active:scale-95 transition-all"
-                >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    />
-                  </svg>
-                </button>
-              </div>
+                                <div className="space-y-2">
+                                  {group.addons.map((addon) => {
+                                    const isSelected = isAddonSelected(itemIndex, addon._id)
+                                    return (
+                                      <label
+                                        key={addon._id}
+                                        className="flex items-center p-3 bg-white rounded-lg border-2 border-gray-200 hover:border-current transition-colors"
+                                        style={{ borderColor: isSelected ? Colors.brown : undefined }}
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={isSelected}
+                                          onChange={() => toggleAddon(itemIndex, addon._id, group._id)}
+                                          className="w-5 h-5 rounded cursor-pointer"
+                                          style={{ accentColor: Colors.brown }}
+                                        />
+                                        <span className="ml-3 flex-1 text-sm text-gray-800 font-medium">
+                                          {addon.name}
+                                        </span>
+                                        <span className="text-sm font-semibold" style={{ color: Colors.brown }}>
+                                          +${addon.price.toFixed(2)}
+                                        </span>
+                                      </label>
+                                    )
+                                  })}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      )}
+          )}
         </div>
 
         {/* Order Summary */}
@@ -232,7 +316,7 @@ export default function CartPage() {
               <span>Subtotal</span>
               <span className="font-medium">${calculateSubtotal().toFixed(2)}</span>
             </div>
-            <div className="border-t-2 pt-3 flex justify-between font-bold text-orange-400 text-lg">
+            <div className="border-t-2 pt-3 flex justify-between font-bold text-lg" style={{ color: Colors.brown }}>
               <span>Total</span>
               <span>${calculateTotal().toFixed(2)}</span>
             </div>
@@ -246,7 +330,11 @@ export default function CartPage() {
           <button
             onClick={confirmOrder}
             disabled={cart.length === 0}
-            className="w-full bg-orange-400 active:bg-orange-500 disabled:bg-gray-300 text-white font-bold py-5 rounded-2xl transition-all active:scale-98 shadow-lg disabled:shadow-none text-lg"
+            className="w-full font-bold py-5 rounded-2xl transition-all active:scale-98 shadow-lg disabled:shadow-none text-lg"
+            style={{
+              backgroundColor: Colors.brown,
+              color: "white",
+            }}
           >
             Place Order - ${calculateTotal().toFixed(2)}
           </button>
@@ -254,47 +342,47 @@ export default function CartPage() {
       </div>
 
       {/* User Info Popup */}
-  {/* User Info Popup */}
-{showUserPopup && (
-  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-    <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-lg">
-      <h3 className="text-lg font-bold text-gray-800 mb-4">Your Info (Optional)</h3>
-      <input
-        type="text"
-        placeholder="Enter your name"
-        value={userName}
-        onChange={(e) => setUserName(e.target.value)}
-        className="w-full p-4 border-2 border-gray-200 rounded-xl mb-4 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent text-base"
-      />
-      <input
-        type="tel"
-        placeholder="Enter your phone number"
-        value={userPhone}
-        onChange={(e) => setUserPhone(e.target.value)}
-        className="w-full p-4 border-2 border-gray-200 rounded-xl mb-4 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent text-base"
-      />
-      <div className="flex justify-end gap-3">
-        <button
-          onClick={() => {
-            // Skip and submit immediately
-            setShowUserPopup(false)
-            confirmOrder()
-          }}
-          className="px-6 py-3 bg-gray-200 rounded-xl font-medium text-gray-700 hover:bg-gray-300 transition-all"
-        >
-          Skip
-        </button>
-        <button
-          onClick={confirmOrder}
-          className="px-6 py-3 bg-orange-400 rounded-xl font-medium text-white hover:bg-orange-500 transition-all"
-        >
-          Submit
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
+      {showUserPopup && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-lg">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">Your Info (Optional)</h3>
+            <input
+              type="text"
+              placeholder="Enter your name"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              className="w-full p-4 border-2 border-gray-200 rounded-xl mb-4 focus:outline-none text-base"
+              style={{ boxShadow: `0 0 0 2px ${Colors.brown}` }}
+            />
+            <input
+              type="tel"
+              placeholder="Enter your phone number"
+              value={userPhone}
+              onChange={(e) => setUserPhone(e.target.value)}
+              className="w-full p-4 border-2 border-gray-200 rounded-xl mb-4 focus:outline-none text-base"
+              style={{ boxShadow: `0 0 0 2px ${Colors.brown}` }}
+            />
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowUserPopup(false)
+                  confirmOrder()
+                }}
+                className="px-6 py-3 bg-gray-200 rounded-xl font-medium text-gray-700 hover:bg-gray-300 transition-all"
+              >
+                Skip
+              </button>
+              <button
+                onClick={confirmOrder}
+                className="px-6 py-3 rounded-xl font-medium text-white transition-all"
+                style={{ backgroundColor: Colors.brown }}
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

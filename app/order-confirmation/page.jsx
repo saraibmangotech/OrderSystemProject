@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Colors from "../assets/colors"
 
 export default function OrderConfirmationPage() {
   const [order, setOrder] = useState(null)
@@ -83,20 +84,24 @@ export default function OrderConfirmationPage() {
 
       {/* Action Buttons */}
       <div className="w-full space-y-3">
-        <button
-          onClick={handleReorder}
-          className="w-full bg-orange-400 hover:bg-orange-500 text-white font-semibold py-4 px-6 rounded-2xl flex items-center justify-center gap-2 transition-colors"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-            />
-          </svg>
-          Reorder
-        </button>
+       <button
+  onClick={handleReorder}
+  className="w-full text-white font-semibold py-4 px-6 rounded-2xl flex items-center justify-center gap-2 transition-colors"
+  style={{ backgroundColor: Colors.brown }}
+  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#8B4513")} // slightly darker brown on hover
+  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = Colors.brown)}
+>
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+    />
+  </svg>
+  Reorder
+</button>
+
 
         {/* <button
           onClick={handleViewReceipt}
@@ -155,15 +160,26 @@ function TicTacToe() {
     setXIsNext(!xIsNext)
   }
 
-  const renderSquare = (i) => (
-    <button
-      onClick={() => handleClick(i)}
-      className={`w-14 h-14 md:w-16 md:h-16 border-2 border-orange-300 flex items-center justify-center text-2xl font-bold rounded-lg
-        ${!board[i] ? "bg-orange-50 hover:bg-orange-100" : "bg-orange-200"} transition-colors`}
-    >
-      {board[i]}
-    </button>
-  )
+const renderSquare = (i) => (
+  <button
+    onClick={() => handleClick(i)}
+    className={`w-14 h-14 md:w-16 md:h-16 border-2 flex items-center justify-center text-2xl font-bold rounded-lg transition-colors`}
+    style={{
+      borderColor: Colors.brown,
+      backgroundColor: board[i]
+        ? "#D2B48C" // darker brown for filled squares
+        : "#F5DEB3", // lighter brown for empty squares
+    }}
+    onMouseEnter={(e) => {
+      if (!board[i]) e.currentTarget.style.backgroundColor = "#E6C9A8"; // slightly darker on hover
+    }}
+    onMouseLeave={(e) => {
+      if (!board[i]) e.currentTarget.style.backgroundColor = "#F5DEB3";
+    }}
+  >
+    {board[i]}
+  </button>
+)
 
   const resetGame = () => {
     setBoard(Array(9).fill(null))
@@ -176,12 +192,16 @@ function TicTacToe() {
       <div className="mt-2 text-sm text-gray-600 font-medium">
         {winner ? `Winner: ${winner}` : `Next: ${xIsNext ? "🍔" : "🥗"}`}
       </div>
-      <button
-        onClick={resetGame}
-        className="mt-2 bg-orange-400 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition-all"
-      >
-        Reset
-      </button>
+  <button
+  onClick={resetGame}
+  className="mt-2 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition-all"
+  style={{ backgroundColor: Colors.brown }}
+  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#8B4513")} // slightly darker on hover
+  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = Colors.brown)}
+>
+  Reset
+</button>
+
     </div>
   )
 }
