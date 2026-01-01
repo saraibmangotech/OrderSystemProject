@@ -133,7 +133,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-32 relative">
+    <div className="page min-h-screen bg-gray-50 pb-32 relative">
       {/* Header */}
       <div className="bg-white p-5 border-b sticky top-0 z-10 shadow-sm">
         <div className="flex items-center mb-4">
@@ -343,7 +343,7 @@ export default function CartPage() {
 
       {/* User Info Popup */}
       {showUserPopup && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+        <div className="overlay-fade fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-lg">
             <h3 className="text-lg font-bold text-gray-800 mb-4">Your Info (Optional)</h3>
             <input

@@ -180,9 +180,9 @@ function MenuContent() {
   const ordersCount = orders.length
 
   return (
-    <div className="min-h-screen bg-white pb-28">
+    <div className="page min-h-screen bg-white pb-28">
    {showAddonsPopup && selectedProductForAddons && (
-  <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+  <div className="overlay-fade fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
     <div className="bg-white rounded-[32px] w-full max-w-md max-h-[85vh] overflow-hidden flex flex-col shadow-2xl">
       {/* Header */}
       <div className="p-6 border-b flex justify-between items-center">
@@ -266,13 +266,13 @@ function MenuContent() {
       <div className="p-6 border-t bg-gray-50 flex gap-3">
         <button
           onClick={() => addToCartDirect(selectedProductForAddons, [])}
-          className="flex-1 bg-white border-2 border-gray-200 text-gray-600 rounded-2xl py-4 font-bold"
+          className="btn flex-1 bg-white border-2 border-gray-200 text-gray-600 rounded-2xl py-4 font-bold"
         >
           Skip
         </button>
         <button
           onClick={() => addToCartDirect(selectedProductForAddons, selectedAddons)}
-          className="flex-1 text-white rounded-2xl py-4 font-bold shadow-lg"
+          className="btn flex-1 text-white rounded-2xl py-4 font-bold shadow-lg"
           style={{ backgroundColor: Colors.brown, boxShadow: `${Colors.brown}50 0px 4px 8px` }}
         >
           Submit
@@ -285,7 +285,7 @@ function MenuContent() {
 
       {/* Orders Popup */}
 {showOrdersPopup && orders.length > 0 && (
-  <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+  <div className="overlay-fade fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
     <div className="bg-white rounded-3xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col shadow-2xl">
       <div className="p-6 border-b flex justify-between items-center">
         <h3 className="text-xl font-bold text-gray-800">Your Orders</h3>
@@ -373,7 +373,7 @@ function MenuContent() {
 
       {/* Cart Drawer */}
     {showCartDrawer && cart.length > 0 && (
-  <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/40">
+  <div className="overlay-fade fixed inset-0 z-[90] flex items-end justify-center bg-black/40">
     <div className="bg-white rounded-t-[32px] w-full max-w-md max-h-[70vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
       <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3 mb-2" />
       <div className="px-6 py-4 border-b flex justify-between items-center">
@@ -517,12 +517,18 @@ function MenuContent() {
                 <button
                   key={cat._id}
                   onClick={() => setActiveCategory(cat.name)}
-                  className={`relative min-w-[120px] h-28 rounded-2xl overflow-hidden transition-all active:scale-95 ${isActive ? "ring-2 ring-orange-400 shadow-xl" : "ring-1 ring-gray-200"}`}
+                  className={`relative min-w-[120px] h-28 rounded-2xl overflow-hidden transform-gpu will-change-transform transition-all duration-300 ease-out active:scale-95 ${
+                    isActive
+                      ? "scale-[1.06] ring-2 ring-orange-400 shadow-xl"
+                      : "scale-[0.98] ring-1 ring-gray-200 hover:scale-[1.02] hover:shadow-lg"
+                  }`}
                 >
                   <img
                     src={cat.image_url || "/placeholder.svg"}
                     alt={cat.name}
-                    className={`absolute inset-0 h-full w-full object-cover transition ${isActive ? "scale-110" : "scale-100"}`}
+                    className={`absolute inset-0 h-full w-full object-cover transition duration-300 ease-out ${
+                      isActive ? "scale-110" : "scale-100"
+                    }`}
                   />
                   <div className={`absolute inset-0 transition ${isActive ? "bg-black/40" : "bg-black/30"}`} />
                   <div className="relative z-10 flex h-full items-end justify-center p-2">
@@ -567,7 +573,7 @@ function MenuContent() {
                           alt={item.name}
                         />
                       </div>
-                      <div className="p-3 pb-4">
+                      <div className="p-3 pb-4 reveal">
                         <h3 className="font-semibold text-sm text-gray-800 mb-1 line-clamp-2">{item.name}</h3>
                         <p className=" font-bold text-base mb-2"   style={{ color: Colors.brown }}>${item.base_price.toFixed(2)}</p>
                       </div>

@@ -123,7 +123,7 @@ export default function CustomizePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-32 max-w-md mx-auto">
+    <div className="page min-h-screen bg-white pb-32 max-w-md mx-auto">
       {/* Header */}
       <div className="p-6 border-b">
         <button onClick={() => router.back()} className="mb-4">
@@ -222,7 +222,7 @@ export default function CustomizePage() {
         <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t max-w-md mx-auto">
           <button
             onClick={handleAddToCart}
-            className="w-full bg-orange-400 hover:bg-orange-500 text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-2 transition-colors"
+            className="btn w-full bg-orange-400 hover:bg-orange-500 text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-2 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path

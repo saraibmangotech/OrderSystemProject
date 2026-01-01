@@ -69,13 +69,13 @@ function OrderDetailInner() {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="page min-h-screen bg-gray-50 pb-24">
       {/* Header */}
       <div className="bg-white sticky top-0 z-10 border-b">
         <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
           <button
             onClick={() => router.back()}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 active:scale-95 transition"
+            className="btn w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 active:scale-95 transition"
             aria-label="Go back"
           >
             <svg

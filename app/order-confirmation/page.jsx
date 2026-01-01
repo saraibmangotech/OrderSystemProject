@@ -60,7 +60,7 @@ export default function OrderConfirmationPage() {
   const currentStatusIndex = statuses.findIndex((s) => s.key === currentStatus)
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 max-w-md mx-auto">
+    <div className="page min-h-screen bg-white flex flex-col items-center justify-center p-6 max-w-md mx-auto">
       {/* Chef Illustration */}
     
 
@@ -86,7 +86,7 @@ export default function OrderConfirmationPage() {
       <div className="w-full space-y-3">
        <button
   onClick={handleReorder}
-  className="w-full text-white font-semibold py-4 px-6 rounded-2xl flex items-center justify-center gap-2 transition-colors"
+  className="btn w-full text-white font-semibold py-4 px-6 rounded-2xl flex items-center justify-center gap-2 transition-colors"
   style={{ backgroundColor: Colors.brown }}
   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#8B4513")} // slightly darker brown on hover
   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = Colors.brown)}
