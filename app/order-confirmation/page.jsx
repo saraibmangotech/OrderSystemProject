@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation"
 import Colors from "../assets/colors"
 
 export default function OrderConfirmationPage() {
+
   const [order, setOrder] = useState(null)
   const [currentStatus, setCurrentStatus] = useState("preparing")
   const router = useRouter()
-
+  let Restaurant = localStorage.getItem('restaurantData')
+  Restaurant = JSON.parse(Restaurant)
   useEffect(() => {
     const savedOrder = localStorage.getItem("currentOrder")
     if (savedOrder) {
@@ -38,7 +40,7 @@ export default function OrderConfirmationPage() {
   const handleReorder = () => {
     if (order) {
       // localStorage.setItem("cart", JSON.stringify(order.items))
-     router.push(`/menu?id=${localStorage.getItem('restaurantId')}&table=${localStorage.getItem('tableNumber')}`)
+      router.push(`/menu?id=${localStorage.getItem('restaurantId')}&table=${localStorage.getItem('tableNumber')}`)
     }
   }
 
@@ -62,10 +64,10 @@ export default function OrderConfirmationPage() {
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 max-w-md mx-auto">
       {/* Chef Illustration */}
-    
 
-        <CookingAnimation />
-        {/* Tic Tac Toe Game */}
+
+      <CookingAnimation />
+      {/* Tic Tac Toe Game */}
       {/* Confirmation Title */}
       <h1 className="text-2xl font-bold text-gray-800 mb-2 text-balance">Order Confirmed!</h1>
 
@@ -78,29 +80,29 @@ export default function OrderConfirmationPage() {
       <div className="w-full mb-8 flex flex-col items-center">
         <h2 className="text-sm font-semibold text-center mb-4 text-gray-700">While You Wait...</h2>
 
-      
+
         <TicTacToe />
       </div>
 
       {/* Action Buttons */}
       <div className="w-full space-y-3">
-       <button
-  onClick={handleReorder}
-  className="w-full text-white font-semibold py-4 px-6 rounded-2xl flex items-center justify-center gap-2 transition-colors"
-  style={{ backgroundColor: Colors.brown }}
-  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#8B4513")} // slightly darker brown on hover
-  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = Colors.brown)}
->
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-    />
-  </svg>
-  Reorder
-</button>
+        <button
+          onClick={handleReorder}
+          className="w-full text-white font-semibold py-4 px-6 rounded-2xl flex items-center justify-center gap-2 transition-colors"
+          style={{ backgroundColor: Colors[`${Restaurant?.restaurant?.theme}`] }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#8B4513")} // slightly darker brown on hover
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = Colors[`${Restaurant?.restaurant?.theme}`])}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+          Reorder
+        </button>
 
 
         {/* <button
@@ -148,6 +150,8 @@ function CookingAnimation() {
 // Tic Tac Toe Component
 function TicTacToe() {
   const [board, setBoard] = useState(Array(9).fill(null))
+   let Restaurant = localStorage.getItem('restaurantData')
+  Restaurant = JSON.parse(Restaurant)
   const [xIsNext, setXIsNext] = useState(true)
 
   const winner = calculateWinner(board)
@@ -160,26 +164,26 @@ function TicTacToe() {
     setXIsNext(!xIsNext)
   }
 
-const renderSquare = (i) => (
-  <button
-    onClick={() => handleClick(i)}
-    className={`w-14 h-14 md:w-16 md:h-16 border-2 flex items-center justify-center text-2xl font-bold rounded-lg transition-colors`}
-    style={{
-      borderColor: Colors.brown,
-      backgroundColor: board[i]
-        ? "#D2B48C" // darker brown for filled squares
-        : "#F5DEB3", // lighter brown for empty squares
-    }}
-    onMouseEnter={(e) => {
-      if (!board[i]) e.currentTarget.style.backgroundColor = "#E6C9A8"; // slightly darker on hover
-    }}
-    onMouseLeave={(e) => {
-      if (!board[i]) e.currentTarget.style.backgroundColor = "#F5DEB3";
-    }}
-  >
-    {board[i]}
-  </button>
-)
+  const renderSquare = (i) => (
+    <button
+      onClick={() => handleClick(i)}
+      className={`w-14 h-14 md:w-16 md:h-16 border-2 flex items-center justify-center text-2xl font-bold rounded-lg transition-colors`}
+      style={{
+        borderColor: Colors[`${Restaurant?.restaurant?.theme}`],
+        backgroundColor: board[i]
+          ? "#D2B48C" // darker brown for filled squares
+          : "#F5DEB3", // lighter brown for empty squares
+      }}
+      onMouseEnter={(e) => {
+        if (!board[i]) e.currentTarget.style.backgroundColor = "#E6C9A8"; // slightly darker on hover
+      }}
+      onMouseLeave={(e) => {
+        if (!board[i]) e.currentTarget.style.backgroundColor = "#F5DEB3";
+      }}
+    >
+      {board[i]}
+    </button>
+  )
 
   const resetGame = () => {
     setBoard(Array(9).fill(null))
@@ -192,15 +196,15 @@ const renderSquare = (i) => (
       <div className="mt-2 text-sm text-gray-600 font-medium">
         {winner ? `Winner: ${winner}` : `Next: ${xIsNext ? "🍔" : "🥗"}`}
       </div>
-  <button
-  onClick={resetGame}
-  className="mt-2 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition-all"
-  style={{ backgroundColor: Colors.brown }}
-  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#8B4513")} // slightly darker on hover
-  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = Colors.brown)}
->
-  Reset
-</button>
+      <button
+        onClick={resetGame}
+        className="mt-2 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition-all"
+        style={{ backgroundColor: Colors[`${Restaurant?.restaurant?.theme}`] }}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#8B4513")} // slightly darker on hover
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = Colors[`${Restaurant?.restaurant?.theme}`])}
+      >
+        Reset
+      </button>
 
     </div>
   )

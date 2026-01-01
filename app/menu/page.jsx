@@ -30,13 +30,26 @@ function MenuContent() {
   const searchParams = useSearchParams()
   const id = searchParams.get("id")
   const table = searchParams.get("table")
+  const isPopupOpen = showAddonsPopup || showOrdersPopup || showCartDrawer;
+  useEffect(() => {
+    if (isPopupOpen) {
+      document.body.style.overflow = "hidden"; // disable scroll
+    } else {
+      document.body.style.overflow = ""; // enable scroll
+    }
 
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = "";
+    }
+  }, [isPopupOpen]);
   const getRestaurantDetails = async () => {
     try {
       const res = await axios.get(
         "https://scanserve.mangotech-api.com/api/v1/restaurants/694fadd4e6107f3236d79fcc/694fadfce6107f3236d79fd4/details",
       )
       setData(res?.data?.data)
+      localStorage.setItem('restaurantData',JSON.stringify(res?.data?.data))
     } catch (err) {
       console.log(err)
     } finally {
@@ -174,6 +187,10 @@ function MenuContent() {
       setTemp((prev) => !prev)
     }
   }
+  const allCategories = [
+    { _id: "all", name: "All", image_url: "https://media.istockphoto.com/id/1457979959/photo/snack-junk-fast-food-on-table-in-restaurant-soup-sauce-ornament-grill-hamburger-french-fries.jpg?s=612x612&w=0&k=20&c=QbFk2SfDb-7oK5Wo9dKmzFGNoi-h8HVEdOYWZbIjffo=" }, // All category
+    ...(data?.categories || []), // existing categories
+  ];
 
   const getCartTotal = () => cart.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0), 0)
 
@@ -181,287 +198,306 @@ function MenuContent() {
 
   return (
     <div className="min-h-screen bg-white pb-28">
-   {showAddonsPopup && selectedProductForAddons && (
-  <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-    <div className="bg-white rounded-[32px] w-full max-w-md max-h-[85vh] overflow-hidden flex flex-col shadow-2xl">
-      {/* Header */}
-      <div className="p-6 border-b flex justify-between items-center">
-        <div>
-          <h3 className="text-xl font-bold text-gray-800">Customize Order</h3>
-          <p className="text-sm text-gray-500">{selectedProductForAddons.name}</p>
-        </div>
-        <button onClick={() => setShowAddonsPopup(false)} className="text-gray-400">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
+      {showAddonsPopup && selectedProductForAddons && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-[32px] w-full max-w-md max-h-[85vh] overflow-hidden flex flex-col shadow-2xl">
 
-      {/* Addons List */}
-      <div className="overflow-y-auto p-6 space-y-6">
-        {selectedProductForAddons.flattenedAddons.map((addon) => (
-          <div key={addon._id} className="space-y-3">
-            <div className="flex justify-between items-center">
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{addon.groupName}</p>
-              <span className="text-[10px] bg-gray-100 px-2 py-1 rounded-full text-gray-500">
-                {addon.selectionType === "single" ? "Choose 1" : `Max ${addon.maxSelection}`}
-              </span>
+            {/* Header */}
+            <div className="p-6 border-b flex justify-between items-center">
+              <div>
+                <h3 className="text-xl font-bold text-gray-800">Customize Order</h3>
+                <p className="text-sm text-gray-500">{selectedProductForAddons.name}</p>
+              </div>
+              <button onClick={() => setShowAddonsPopup(false)} className="text-gray-400">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-            <div className="space-y-2">
-              <label
-                key={addon._id}
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl cursor-pointer hover:bg-gray-100 transition-all border-2 border-transparent"
-                style={{
-                  borderColor: selectedAddons.find((a) => a._id === addon._id) ? Colors.brown : undefined,
-                  backgroundColor: selectedAddons.find((a) => a._id === addon._id) ? `${Colors.brown}20` : undefined,
-                }}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="relative flex items-center">
-                    <input
-                      type={addon.selectionType === "single" ? "radio" : "checkbox"}
-                      name={`addon-group-${addon.groupId}`}
-                      className="peer h-6 w-6 cursor-pointer appearance-none rounded-lg border-2 border-gray-300 transition-all"
-                      style={{
-                        borderColor: selectedAddons.find((a) => a._id === addon._id) ? Colors.brown : undefined,
-                        backgroundColor: selectedAddons.find((a) => a._id === addon._id) ? Colors.brown : undefined,
-                      }}
-                      checked={!!selectedAddons.find((a) => a._id === addon._id)}
-                      onChange={() => {
-                        if (addon.selectionType === "single") {
-                          setSelectedAddons((prev) => [
-                            ...prev.filter(
-                              (a) =>
-                                !selectedProductForAddons.flattenedAddons.find((ga) => ga.groupId === a.groupId),
-                            ),
-                            addon,
-                          ])
-                        } else {
-                          toggleAddon(addon)
-                        }
-                      }}
-                    />
-                    <svg
-                      className="absolute w-4 h-4 text-white pointer-events-none hidden peer-checked:block left-1"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      strokeWidth="4"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
+
+            {/* Grouped Addons List */}
+            <div className="overflow-y-auto p-6 space-y-6">
+              {Object.values(
+                selectedProductForAddons.flattenedAddons.reduce((acc, addon) => {
+                  // Group addons by groupName
+                  if (!acc[addon.groupName]) acc[addon.groupName] = [];
+                  acc[addon.groupName].push(addon);
+                  return acc;
+                }, {})
+              ).map((addonsInGroup, idx) => {
+                const groupName = addonsInGroup[0].groupName;
+                return (
+                  <div key={groupName + idx} className="space-y-3">
+                    {/* Group Heading */}
+                    <div className="flex justify-between items-center">
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{groupName}</p>
+                      <span className="text-[10px] bg-gray-100 px-2 py-1 rounded-full text-gray-500">
+                        {addonsInGroup[0].selectionType === "single"
+                          ? "Choose 1"
+                          : `Max ${addonsInGroup[0].maxSelection}`}
+                      </span>
+                    </div>
+
+                    {/* Addons in this group */}
+                    <div className="space-y-2">
+                      {addonsInGroup.map((addon) => (
+                        <label
+                          key={addon._id}
+                          className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl cursor-pointer hover:bg-gray-100 transition-all border-2 border-transparent"
+                          style={{
+                            borderColor: selectedAddons.find((a) => a._id === addon._id) ? Colors[`${data?.restaurant?.theme}`] : undefined,
+                            backgroundColor: selectedAddons.find((a) => a._id === addon._id) ? `${Colors[`${data?.restaurant?.theme}`]}20` : undefined,
+                          }}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="relative flex items-center">
+                              <input
+                                type={addon.selectionType === "single" ? "radio" : "checkbox"}
+                                name={`addon-group-${addon.groupId}`}
+                                className="peer h-6 w-6 cursor-pointer appearance-none rounded-lg border-2 border-gray-300 transition-all"
+                                style={{
+                                  borderColor: selectedAddons.find((a) => a._id === addon._id) ? Colors[`${data?.restaurant?.theme}`] : undefined,
+                                  backgroundColor: selectedAddons.find((a) => a._id === addon._id) ? Colors[`${data?.restaurant?.theme}`] : undefined,
+                                }}
+                                checked={!!selectedAddons.find((a) => a._id === addon._id)}
+                                onChange={() => {
+                                  if (addon.selectionType === "single") {
+                                    setSelectedAddons((prev) => [
+                                      ...prev.filter(
+                                        (a) =>
+                                          !selectedProductForAddons.flattenedAddons.find((ga) => ga.groupId === a.groupId),
+                                      ),
+                                      addon,
+                                    ])
+                                  } else {
+                                    toggleAddon(addon)
+                                  }
+                                }}
+                              />
+                              <svg
+                                className="absolute w-4 h-4 text-white pointer-events-none hidden peer-checked:block left-1"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                strokeWidth="4"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                            <span className="font-semibold text-gray-800">{addon.name}</span>
+                          </div>
+                          <span className="font-bold" style={{ color: Colors[`${data?.restaurant?.theme}`] }}>
+                            +${Number(addon.price).toFixed(2)}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                  <span className="font-semibold text-gray-800">{addon.name}</span>
-                </div>
-                <span className="font-bold" style={{ color: Colors.brown }}>
-                  +${Number(addon.price).toFixed(2)}
-                </span>
-              </label>
+                )
+              })}
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="p-6 border-t bg-gray-50 flex gap-3">
+              <button
+                onClick={() => addToCartDirect(selectedProductForAddons, [])}
+                className="flex-1 bg-white border-2 border-gray-200 text-gray-600 rounded-2xl py-4 font-bold"
+              >
+                Skip
+              </button>
+              <button
+                onClick={() => addToCartDirect(selectedProductForAddons, selectedAddons)}
+                className="flex-1 text-white rounded-2xl py-4 font-bold shadow-lg"
+                style={{ backgroundColor: Colors[`${data?.restaurant?.theme}`], boxShadow: `${Colors[`${data?.restaurant?.theme}`]}50 0px 4px 8px` }}
+              >
+                Submit
+              </button>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
 
-      {/* Footer Buttons */}
-      <div className="p-6 border-t bg-gray-50 flex gap-3">
-        <button
-          onClick={() => addToCartDirect(selectedProductForAddons, [])}
-          className="flex-1 bg-white border-2 border-gray-200 text-gray-600 rounded-2xl py-4 font-bold"
-        >
-          Skip
-        </button>
-        <button
-          onClick={() => addToCartDirect(selectedProductForAddons, selectedAddons)}
-          className="flex-1 text-white rounded-2xl py-4 font-bold shadow-lg"
-          style={{ backgroundColor: Colors.brown, boxShadow: `${Colors.brown}50 0px 4px 8px` }}
-        >
-          Submit
-        </button>
-      </div>
-    </div>
-  </div>
-)}
 
 
       {/* Orders Popup */}
-{showOrdersPopup && orders.length > 0 && (
-  <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-    <div className="bg-white rounded-3xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col shadow-2xl">
-      <div className="p-6 border-b flex justify-between items-center">
-        <h3 className="text-xl font-bold text-gray-800">Your Orders</h3>
-        <button onClick={() => setShowOrdersPopup(false)} className="text-gray-400 hover:text-gray-600 p-1">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-
-      <div className="overflow-y-auto p-6 space-y-6">
-        {orders.map((order) => {
-          const remaining = getRemainingMinutes(order)
-          return (
-            <div
-              key={order.id}
-              onClick={() => router.push(`/order-detail?orderId=${order.id}`, { state: order })}
-              className="bg-gray-50 rounded-2xl p-4 border border-gray-100 cursor-pointer"
-            >
-              {/* Order header */}
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wider" style={{ color: Colors.brown }}>
-                    #{order.id.split("-")[1]}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {new Date(order.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {remaining === 0 ? "Ready" : `${remaining} min left`}
-                  </p>
-                </div>
-                <span
-                  className="px-3 py-1 text-[10px] font-bold uppercase rounded-full"
-                  style={{ backgroundColor: `${Colors.brown}20`, color: Colors.brown }}
-                >
-                  {order.status}
-                </span>
-              </div>
-
-              {/* Items and Addons */}
-              <div className="space-y-2 mb-3">
-                {order.items.map((item, idx) => {
-                  const unitPrice = Number.parseFloat(item?.base_price || item?.price)
-                  return (
-                    <div key={idx} className="space-y-1">
-                      {/* Item line */}
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-700">
-                          {item.quantity}x {item.name}
-                        </span>
-                        <span className="font-medium">${(unitPrice * item.quantity).toFixed(2)}</span>
-                      </div>
-
-                      {/* Selected Addons */}
-                      {item.selectedAddons && item.selectedAddons.length > 0 && (
-                        <div className="ml-4 space-y-1">
-                          {item.selectedAddons.map((addon) => (
-                            <div key={addon._id} className="flex justify-between text-xs text-gray-500">
-                              <span>+ {addon.name}</span>
-                              <span>${addon.price.toFixed(2)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-
-              {/* Total */}
-              <div className="pt-3 border-t border-dashed flex justify-between items-center font-bold text-gray-800">
-                <span>Total Paid</span>
-                <span>${order.total.toFixed(2)}</span>
-              </div>
+      {showOrdersPopup && orders.length > 0 && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col shadow-2xl">
+            <div className="p-6 border-b flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-800">Your Orders</h3>
+              <button onClick={() => setShowOrdersPopup(false)} className="text-gray-400 hover:text-gray-600 p-1">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-          )
-        })}
-      </div>
-    </div>
-  </div>
-)}
+
+            <div className="overflow-y-auto p-6 space-y-6">
+              {orders.map((order) => {
+                const remaining = getRemainingMinutes(order)
+                return (
+                  <div
+                    key={order.id}
+                    onClick={() => router.push(`/order-detail?orderId=${order.id}`, { state: order })}
+                    className="bg-gray-50 rounded-2xl p-4 border border-gray-100 cursor-pointer"
+                  >
+                    {/* Order header */}
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider" style={{ color: Colors[`${data?.restaurant?.theme}`] }}>
+                          #{order.id.split("-")[1]}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {new Date(order.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {remaining === 0 ? "Ready" : `${remaining} min left`}
+                        </p>
+                      </div>
+                      <span
+                        className="px-3 py-1 text-[10px] font-bold uppercase rounded-full"
+                        style={{ backgroundColor: `${Colors[`${data?.restaurant?.theme}`]}20`, color: Colors[`${data?.restaurant?.theme}`] }}
+                      >
+                        {order.status}
+                      </span>
+                    </div>
+
+                    {/* Items and Addons */}
+                    <div className="space-y-2 mb-3">
+                      {order.items.map((item, idx) => {
+                        const unitPrice = Number.parseFloat(item?.base_price || item?.price)
+                        return (
+                          <div key={idx} className="space-y-1">
+                            {/* Item line */}
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700">
+                                {item.quantity}x {item.name}
+                              </span>
+                              <span className="font-medium">${(unitPrice * item.quantity).toFixed(2)}</span>
+                            </div>
+
+                            {/* Selected Addons */}
+                            {item.selectedAddons && item.selectedAddons.length > 0 && (
+                              <div className="ml-4 space-y-1">
+                                {item.selectedAddons.map((addon) => (
+                                  <div key={addon._id} className="flex justify-between text-xs text-gray-500">
+                                    <span>+ {addon.name}</span>
+                                    <span>${addon.price.toFixed(2)}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    {/* Total */}
+                    <div className="pt-3 border-t border-dashed flex justify-between items-center font-bold text-gray-800">
+                      <span>Total Paid</span>
+                      <span>${order.total.toFixed(2)}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
 
 
       {/* Cart Drawer */}
-    {showCartDrawer && cart.length > 0 && (
-  <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/40">
-    <div className="bg-white rounded-t-[32px] w-full max-w-md max-h-[70vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
-      <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3 mb-2" />
-      <div className="px-6 py-4 border-b flex justify-between items-center">
-        <h3 className="text-xl font-bold text-gray-800">Current Cart</h3>
-        <button
-          onClick={() => setShowCartDrawer(false)}
-          className="text-gray-400 hover:text-gray-600 font-medium text-sm"
-        >
-          Close
-        </button>
-      </div>
-      <div className="overflow-y-auto px-6 py-4 flex-1">
-        {cart?.map((item) => (
-          <div key={item?._id} className="flex items-start gap-4 py-4 border-b last:border-0">
-            <img
-              src={item?.image || "/placeholder.svg"}
-              alt={item?.name}
-              className="w-16 h-16 rounded-xl object-cover bg-gray-100 mt-1"
-            />
-            <div className="flex-1">
-              <h4 className="font-semibold text-gray-800 text-sm">{item?.name}</h4>
-              {item.selectedAddons && item.selectedAddons.length > 0 && (
-                <div className="mt-2 space-y-1">
-                  {item.selectedAddons.map((addon, idx) => (
-                    <div key={idx} className="flex items-center justify-between group">
-                      <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full flex items-center gap-1">
-                        + {addon.item_name || addon.name}
-                        <span
-                          className="text-[9px] font-bold ml-1"
-                          style={{ color: Colors.brown }}
-                        >
-                          (${Number(addon.price).toFixed(2)})
-                        </span>
-                      </span>
-                      <button
-                        onClick={() => removeAddon(item, addon)}
-                        className="text-gray-300 hover:text-red-400 p-0.5 transition-colors"
-                        title="Remove addon"
-                      >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2.5}
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <p className="font-bold text-sm mt-1" style={{ color: Colors.brown }}>
-                ${Number.parseFloat(item?.price).toFixed(2)}
-              </p>
-            </div>
-            <div className="flex items-center bg-gray-100 rounded-full h-8 px-2">
-              <button onClick={() => decreaseQty(item)} className="px-2 text-gray-600">
-                -
+      {showCartDrawer && cart.length > 0 && (
+        <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/40">
+          <div className="bg-white rounded-t-[32px] w-full max-w-md max-h-[70vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
+            <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3 mb-2" />
+            <div className="px-6 py-4 border-b flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-800">Current Cart</h3>
+              <button
+                onClick={() => setShowCartDrawer(false)}
+                className="text-gray-400 hover:text-gray-600 font-medium text-sm"
+              >
+                Close
               </button>
-              <span className="px-2 text-sm font-bold">{item?.quantity}</span>
-              <button onClick={() => increaseQty(item)} className="px-2 text-gray-600">
-                +
+            </div>
+            <div className="overflow-y-auto px-6 py-4 flex-1">
+              {cart?.map((item) => (
+                <div key={item?._id} className="flex items-start gap-4 py-4 border-b last:border-0">
+                  <img
+                    src={item?.image || "/placeholder.svg"}
+                    alt={item?.name}
+                    className="w-16 h-16 rounded-xl object-cover bg-gray-100 mt-1"
+                  />
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-800 text-sm">{item?.name}</h4>
+                    {item.selectedAddons && item.selectedAddons.length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        {item.selectedAddons.map((addon, idx) => (
+                          <div key={idx} className="flex items-center justify-between group">
+                            <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full flex items-center gap-1">
+                              + {addon.item_name || addon.name}
+                              <span
+                                className="text-[9px] font-bold ml-1"
+                                style={{ color: Colors[`${data?.restaurant?.theme}`] }}
+                              >
+                                (${Number(addon.price).toFixed(2)})
+                              </span>
+                            </span>
+                            <button
+                              onClick={() => removeAddon(item, addon)}
+                              className="text-gray-300 hover:text-red-400 p-0.5 transition-colors"
+                              title="Remove addon"
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2.5}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <p className="font-bold text-sm mt-1" style={{ color: Colors[`${data?.restaurant?.theme}`] }}>
+                      ${Number.parseFloat(item?.price).toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="flex items-center bg-gray-100 rounded-full h-8 px-2">
+                    <button onClick={() => decreaseQty(item)} className="px-2 text-gray-600">
+                      -
+                    </button>
+                    <span className="px-2 text-sm font-bold">{item?.quantity}</span>
+                    <button onClick={() => increaseQty(item)} className="px-2 text-gray-600">
+                      +
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="p-6 bg-gray-50 border-t">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-gray-500 font-medium">Subtotal</span>
+                <span className="text-xl font-bold text-gray-800">${getCartTotal().toFixed(2)}</span>
+              </div>
+              <button
+                onClick={() => router.push("/cart")}
+                className="w-full text-white rounded-2xl py-4 font-bold shadow-lg active:scale-[0.98] transition-all"
+                style={{ backgroundColor: Colors[`${data?.restaurant?.theme}`], boxShadow: `0 10px 25px ${Colors[`${data?.restaurant?.theme}`]}40` }}
+              >
+                Proceed to Checkout
               </button>
             </div>
           </div>
-        ))}
-      </div>
-      <div className="p-6 bg-gray-50 border-t">
-        <div className="flex justify-between items-center mb-4">
-          <span className="text-gray-500 font-medium">Subtotal</span>
-          <span className="text-xl font-bold text-gray-800">${getCartTotal().toFixed(2)}</span>
         </div>
-        <button
-          onClick={() => router.push("/cart")}
-          className="w-full text-white rounded-2xl py-4 font-bold shadow-lg active:scale-[0.98] transition-all"
-          style={{ backgroundColor: Colors.brown, boxShadow: `0 10px 25px ${Colors.brown}40` }}
-        >
-          Proceed to Checkout
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
 
       {/* HEADER */}
-      <div className="sticky top-0 z-10 bg-white p-5 flex items-center justify-between border-b shadow-sm">
+      <div className="sticky top-0 z-10 bg-white p-5 py-2 flex items-center justify-between border-b shadow-sm">
         {loading ? (
           <>
             <Skeleton className="h-5 w-24" />
@@ -469,10 +505,15 @@ function MenuContent() {
           </>
         ) : (
           <>
-            <div>
-              <span className="text-sm text-gray-500">Table:</span>
-              <span className="ml-2 text-xl font-bold "   style={{ color: Colors.brown }}>{tableNumber}</span>
+            <div className="flex items-center ">
+              <img
+                src='/assets/images/logo.png'
+                alt="Logo"
+                className="w-20 h-15 object-contain"
+              />
+
             </div>
+
             <button
               onClick={() => setShowCartDrawer(true)}
               className="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-gray-100"
@@ -487,12 +528,12 @@ function MenuContent() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
               {cart?.length > 0 && (
-             <span
-  className="absolute -top-1 -right-1 text-white text-xs rounded-full min-w-[22px] h-[22px] flex items-center justify-center font-semibold shadow-lg"
-  style={{ backgroundColor: Colors.brown }}
->
-  {cart?.length}
-</span>
+                <span
+                  className="absolute -top-1 -right-1 text-white text-xs rounded-full min-w-[22px] h-[22px] flex items-center justify-center font-semibold shadow-lg"
+                  style={{ backgroundColor: Colors[`${data?.restaurant?.theme}`] }}
+                >
+                  {cart?.length}
+                </span>
 
               )}
             </button>
@@ -511,13 +552,19 @@ function MenuContent() {
               <Skeleton className="min-w-[120px] h-24 rounded-2xl" />
             </>
           ) : (
-            data?.categories?.map((cat) => {
-              const isActive = activeCategory === cat.name
+            allCategories?.map((cat) => {
+              const isActive = activeCategory === cat._id
               return (
                 <button
                   key={cat._id}
-                  onClick={() => setActiveCategory(cat.name)}
-                  className={`relative min-w-[120px] h-28 rounded-2xl overflow-hidden transition-all active:scale-95 ${isActive ? "ring-2 ring-orange-400 shadow-xl" : "ring-1 ring-gray-200"}`}
+                  onClick={() => setActiveCategory(cat._id)}
+                  className={`relative min-w-[120px] h-28 rounded-2xl overflow-hidden transition-all active:scale-95 mt-2
+    ${isActive ? "ring-2 shadow-xl" : "ring-1"}
+    `}
+                  style={{
+                    backgroundColor: Colors[`${data?.restaurant?.theme}`], // solid brown background
+                    borderColor: isActive ? Colors[`${data?.restaurant?.theme}`] : "#E5E7EB", // gray-200 fallback
+                  }}
                 >
                   <img
                     src={cat.image_url || "/placeholder.svg"}
@@ -543,67 +590,86 @@ function MenuContent() {
         <div className="grid grid-cols-2 gap-4 pb-4">
           {loading
             ? Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="bg-white border-2 border-gray-100 rounded-2xl overflow-hidden">
-                  <Skeleton className="aspect-square" />
-                  <div className="p-3">
-                    <Skeleton className="h-4 w-3/4 mb-2" />
-                    <Skeleton className="h-4 w-1/3" />
-                  </div>
+              <div key={i} className="bg-white border-2 border-gray-100 rounded-2xl overflow-hidden">
+                <Skeleton className="aspect-square" />
+                <div className="p-3">
+                  <Skeleton className="h-4 w-3/4 mb-2" />
+                  <Skeleton className="h-4 w-1/3" />
                 </div>
-              ))
+              </div>
+            ))
             : data?.products
-                ?.filter((item) => (activeCategory === "all" ? true : item.category_id === activeCategory))
-                .map((item) => {
-                  const qty = getItemQty(item._id)
-                  return (
-                    <div
-                      key={item._id}
-                      className="bg-white border-2 border-gray-100 rounded-2xl overflow-hidden shadow-sm relative"
-                    >
-                      <div className="aspect-square bg-gray-50">
-                        <img
-                          src={item.image_urls?.[0] || "/placeholder.svg"}
-                          className="w-full h-full object-cover"
-                          alt={item.name}
-                        />
-                      </div>
-                      <div className="p-3 pb-4">
-                        <h3 className="font-semibold text-sm text-gray-800 mb-1 line-clamp-2">{item.name}</h3>
-                        <p className=" font-bold text-base mb-2"   style={{ color: Colors.brown }}>${item.base_price.toFixed(2)}</p>
-                      </div>
-                      <div className="absolute bottom-3 right-3">
-                        {qty === 0 ? (
-                      <button
-  onClick={() => increaseQty(item)}
-  className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 shadow-lg active:scale-95"
-  style={{ backgroundColor: Colors.brown }}
->
-  <svg
-    className="w-5 h-5 text-white"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-    strokeWidth={2.5}
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-  </svg>
-</button>
-
-                        ) : (
-                          <div className="flex items-center bg-white rounded-full shadow-lg h-9 px-2 transition-all duration-200">
-                            <button onClick={() => decreaseQty(item)} className="text-xl px-2 text-gray-700">
-                              −
-                            </button>
-                            <span className="px-1 font-semibold text-sm">{qty}</span>
-                            <button onClick={() => increaseQty(item)} className="text-xl px-2 text-gray-700">
-                              +
-                            </button>
-                          </div>
-                        )}
-                      </div>
+              ?.filter((item) => (activeCategory === "all" ? true : item.category_id === activeCategory))
+              .map((item) => {
+                const qty = getItemQty(item._id)
+                return (
+                  <div
+                    onClick={() => {
+                      localStorage.setItem('selectedProductId', item?._id)
+                      router.push("/product-detail")
+                    }}
+                    key={item._id}
+                    className="bg-white border-2 border-gray-100 rounded-2xl overflow-hidden shadow-sm relative"
+                  >
+                    <div className="aspect-square bg-gray-50">
+                      <img
+                        src={item.image_urls?.[0] || "/placeholder.svg"}
+                        className="w-full h-full object-cover"
+                        alt={item.name}
+                      />
                     </div>
-                  )
-                })}
+                    <div className="p-3 pb-4">
+                      <h3 className="font-semibold text-sm text-gray-800 mb-1 line-clamp-2">{item.name}</h3>
+                      <p className=" font-bold text-base mb-2" style={{ color: Colors[`${data?.restaurant?.theme}`] }}>${item.base_price.toFixed(2)}</p>
+                    </div>
+                    <div className="absolute bottom-3 right-3">
+                      {qty === 0 ? (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()   // ❌ Stop event from bubbling
+                            increaseQty(item)
+                          }}
+                          className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 shadow-lg active:scale-95"
+                          style={{ backgroundColor: Colors[`${data?.restaurant?.theme}`] }}
+                        >
+                          <svg
+                            className="w-5 h-5 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            strokeWidth={2.5}
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                          </svg>
+                        </button>
+                      ) : (
+                        <div className="flex items-center bg-white rounded-full shadow-lg h-9 px-2 transition-all duration-200">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              decreaseQty(item)
+                            }}
+                            className="text-xl px-2 text-gray-700"
+                          >
+                            −
+                          </button>
+                          <span className="px-1 font-semibold text-sm">{qty}</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              increaseQty(item)
+                            }}
+                            className="text-xl px-2 text-gray-700"
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                )
+              })}
         </div>
       </div>
 
@@ -649,21 +715,21 @@ function MenuContent() {
                 </button>
               )}
               {cart.length > 0 && (
-             <button
-  onClick={() => setShowCartDrawer(true)}
-  className={`${orders.length > 0 ? "flex-[1.3]" : "w-full"} text-white rounded-2xl px-4 py-3 flex items-center justify-between gap-3 shadow-lg active:scale-[0.98] transition`}
-  style={{ backgroundColor: Colors.brown }}
->
-  <div className="flex flex-col items-start text-xs sm:text-sm leading-tight">
-    <span className="bg-white/20 px-2 py-0.5 rounded-md font-medium">
-      {cart.length} items
-    </span>
-    <span className="font-semibold">View Cart</span>
-  </div>
-  <span className="text-base sm:text-lg font-bold">
-    ${getCartTotal().toFixed(2)}
-  </span>
-</button>
+                <button
+                  onClick={() => setShowCartDrawer(true)}
+                  className={`${orders.length > 0 ? "flex-[1.3]" : "w-full"} text-white rounded-2xl px-4 py-3 flex items-center justify-between gap-3 shadow-lg active:scale-[0.98] transition`}
+                  style={{ backgroundColor: Colors[`${data?.restaurant?.theme}`] }}
+                >
+                  <div className="flex flex-col items-start text-xs sm:text-sm leading-tight">
+                    <span className="bg-white/20 px-2 py-0.5 rounded-md font-medium">
+                      {cart.length} items
+                    </span>
+                    <span className="font-semibold">View Cart</span>
+                  </div>
+                  <span className="text-base sm:text-lg font-bold">
+                    ${getCartTotal().toFixed(2)}
+                  </span>
+                </button>
 
               )}
             </div>

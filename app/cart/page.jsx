@@ -6,6 +6,8 @@ import Colors from "../assets/colors"
 
 
 export default function CartPage() {
+   let Restaurant = localStorage.getItem('restaurantData')
+    Restaurant = JSON.parse(Restaurant)
   const [cart, setCart] = useState([])
   const [expandedItems, setExpandedItems] = useState({})
   const [tableNumber, setTableNumber] = useState("")
@@ -111,7 +113,7 @@ export default function CartPage() {
       timestamp: new Date().toISOString(),
       status: "preparing",
     }
-
+   
     const existingOrders = JSON.parse(localStorage.getItem("orders")) || []
 
     localStorage.setItem("currentOrder", JSON.stringify(order))
@@ -147,8 +149,8 @@ export default function CartPage() {
           </button>
           <h1 className="text-xl font-bold text-gray-800">Your Order</h1>
         </div>
-        <div className="p-4 rounded-xl" style={{ backgroundColor: `${Colors.brown}20` }}>
-          <p className="text-sm font-medium leading-relaxed" style={{ color: Colors.brown }}>
+        <div className="p-4 rounded-xl" style={{ backgroundColor: `${Colors[`${Restaurant?.restaurant?.theme}`]}20` }}>
+          <p className="text-sm font-medium leading-relaxed" style={{ color: Colors[`${Restaurant?.restaurant?.theme}`] }}>
             WristWizards Integration with your restaurant's systems saves time & reduces errors.
           </p>
         </div>
@@ -158,7 +160,7 @@ export default function CartPage() {
         {/* Table Number */}
         <div>
           <h2 className="text-sm font-semibold mb-2 text-gray-700">Table Number</h2>
-          <div className="text-3xl font-bold" style={{ color: Colors.brown }}>{tableNumber}</div>
+          <div className="text-3xl font-bold" style={{ color: Colors[`${Restaurant?.restaurant?.theme}`] }}>{tableNumber}</div>
         </div>
 
         {/* Items */}
@@ -202,7 +204,7 @@ export default function CartPage() {
                           {item.size && `${item.size}, `}
                           {item.spiceLevel && `${item.spiceLevel}`}
                         </p>
-                        <p className="font-bold text-base" style={{ color: Colors.brown }}>
+                        <p className="font-bold text-base" style={{ color: Colors[`${Restaurant?.restaurant?.theme}`] }}>
                           ${(
                             ((item.customPrice || item.price) +
                               (item.selectedAddons?.reduce((sum, addon) => sum + addon.price, 0) || 0)) *
@@ -242,7 +244,7 @@ export default function CartPage() {
                         <button
                           onClick={() => toggleItemExpand(itemIndex)}
                           className="flex items-center justify-between w-full text-sm font-semibold transition-colors"
-                          style={{ color: Colors.brown }}
+                          style={{ color: Colors[`${Restaurant?.restaurant?.theme}`] }}
                         >
                           <span>Customize ({item.selectedAddons?.length || 0} selected)</span>
                           <svg
@@ -276,19 +278,19 @@ export default function CartPage() {
                                       <label
                                         key={addon._id}
                                         className="flex items-center p-3 bg-white rounded-lg border-2 border-gray-200 hover:border-current transition-colors"
-                                        style={{ borderColor: isSelected ? Colors.brown : undefined }}
+                                        style={{ borderColor: isSelected ? Colors[`${Restaurant?.restaurant?.theme}`] : undefined }}
                                       >
                                         <input
                                           type="checkbox"
                                           checked={isSelected}
                                           onChange={() => toggleAddon(itemIndex, addon._id, group._id)}
                                           className="w-5 h-5 rounded cursor-pointer"
-                                          style={{ accentColor: Colors.brown }}
+                                          style={{ accentColor: Colors[`${Restaurant?.restaurant?.theme}`] }}
                                         />
                                         <span className="ml-3 flex-1 text-sm text-gray-800 font-medium">
                                           {addon.name}
                                         </span>
-                                        <span className="text-sm font-semibold" style={{ color: Colors.brown }}>
+                                        <span className="text-sm font-semibold" style={{ color: Colors[`${Restaurant?.restaurant?.theme}`] }}>
                                           +${addon.price.toFixed(2)}
                                         </span>
                                       </label>
@@ -316,7 +318,7 @@ export default function CartPage() {
               <span>Subtotal</span>
               <span className="font-medium">${calculateSubtotal().toFixed(2)}</span>
             </div>
-            <div className="border-t-2 pt-3 flex justify-between font-bold text-lg" style={{ color: Colors.brown }}>
+            <div className="border-t-2 pt-3 flex justify-between font-bold text-lg" style={{ color: Colors[`${Restaurant?.restaurant?.theme}`] }}>
               <span>Total</span>
               <span>${calculateTotal().toFixed(2)}</span>
             </div>
@@ -332,7 +334,7 @@ export default function CartPage() {
             disabled={cart.length === 0}
             className="w-full font-bold py-5 rounded-2xl transition-all active:scale-98 shadow-lg disabled:shadow-none text-lg"
             style={{
-              backgroundColor: Colors.brown,
+              backgroundColor: Colors[`${Restaurant?.restaurant?.theme}`],
               color: "white",
             }}
           >
@@ -352,7 +354,7 @@ export default function CartPage() {
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
               className="w-full p-4 border-2 border-gray-200 rounded-xl mb-4 focus:outline-none text-base"
-              style={{ boxShadow: `0 0 0 2px ${Colors.brown}` }}
+              style={{ boxShadow: `0 0 0 2px ${Colors[`${Restaurant?.restaurant?.theme}`]}` }}
             />
             <input
               type="tel"
@@ -360,7 +362,7 @@ export default function CartPage() {
               value={userPhone}
               onChange={(e) => setUserPhone(e.target.value)}
               className="w-full p-4 border-2 border-gray-200 rounded-xl mb-4 focus:outline-none text-base"
-              style={{ boxShadow: `0 0 0 2px ${Colors.brown}` }}
+              style={{ boxShadow: `0 0 0 2px ${Colors[`${Restaurant?.restaurant?.theme}`]}` }}
             />
             <div className="flex justify-end gap-3">
               <button
@@ -375,7 +377,7 @@ export default function CartPage() {
               <button
                 onClick={confirmOrder}
                 className="px-6 py-3 rounded-xl font-medium text-white transition-all"
-                style={{ backgroundColor: Colors.brown }}
+                style={{ backgroundColor: Colors[`${Restaurant?.restaurant?.theme}`] }}
               >
                 Submit
               </button>
