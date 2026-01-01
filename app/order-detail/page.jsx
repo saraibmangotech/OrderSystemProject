@@ -8,7 +8,8 @@ import Colors from "../assets/colors"
 
 const getRemainingTime = (order) => {
   if (!order?.timestamp || !order?.estimate_time) return "00:00"
-
+ let Restaurant = localStorage.getItem('restaurantData')
+    Restaurant = JSON.parse(Restaurant)
   const placedAt = moment(order.timestamp)
   const estimateMinutes = parseInt(order.estimate_time)
   const readyAt = placedAt.clone().add(estimateMinutes, "minutes")
@@ -26,6 +27,8 @@ const getRemainingTime = (order) => {
 function OrderDetailInner() {
   const searchParams = useSearchParams()
   const router = useRouter()
+     let Restaurant = localStorage.getItem('restaurantData')
+    Restaurant = JSON.parse(Restaurant)
   const orderId = searchParams.get("orderId")
 
   const [order, setOrder] = useState(null)
@@ -53,13 +56,13 @@ function OrderDetailInner() {
     <div className="bg-white rounded-2xl p-5 shadow animate-pulse space-y-3">
       <div className="h-5 bg-gray-300 rounded w-1/3"></div>
       <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-      <div className={`h-10 rounded-xl mt-3`} style={{ backgroundColor: `${Colors.brown}30` }}></div>
+      <div className={`h-10 rounded-xl mt-3`} style={{ backgroundColor: `${Colors[`${Restaurant?.restaurant?.theme}`]}30` }}></div>
       <div className="flex flex-wrap gap-2 mt-3">
         {Array(3).fill(0).map((_, i) => (
           <div
             key={i}
             className="h-8 w-20 rounded-full"
-            style={{ backgroundColor: `${Colors.brown}30` }}
+            style={{ backgroundColor: `${Colors[`${Restaurant?.restaurant?.theme}`]}30` }}
           ></div>
         ))}
       </div>
@@ -69,13 +72,13 @@ function OrderDetailInner() {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="page min-h-screen bg-gray-50 pb-24">
       {/* Header */}
       <div className="bg-white sticky top-0 z-10 border-b">
         <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
           <button
             onClick={() => router.back()}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 active:scale-95 transition"
+            className="btn w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 active:scale-95 transition"
             aria-label="Go back"
           >
             <svg
@@ -110,12 +113,12 @@ function OrderDetailInner() {
             {/* Order Status Card */}
             <div className="bg-white rounded-2xl p-5 shadow">
               <div className="flex justify-between items-center mb-3">
-                <span className="text-sm font-bold" style={{ color: Colors.brown }}>
+                <span className="text-sm font-bold" style={{ color: Colors[`${Restaurant?.restaurant?.theme}`] }}>
                   Order #{order.id}
                 </span>
                 <span
                   className="px-3 py-1 text-xs font-bold uppercase rounded-full"
-                  style={{ backgroundColor: `${Colors.brown}30`, color: Colors.brown }}
+                  style={{ backgroundColor: `${Colors[`${Restaurant?.restaurant?.theme}`]}30`, color: Colors[`${Restaurant?.restaurant?.theme}`] }}
                 >
                   {order.status}
                 </span>
@@ -129,51 +132,51 @@ function OrderDetailInner() {
                 })}
               </p>
 
-              <div className="text-center rounded-xl py-4" style={{ backgroundColor: `${Colors.brown}10` }}>
+              <div className="text-center rounded-xl py-4" style={{ backgroundColor: `${Colors[`${Restaurant?.restaurant?.theme}`]}10` }}>
                 <p className="text-xs text-gray-500">Estimated Time</p>
-                <p className="text-2xl font-bold mt-1" style={{ color: Colors.brown }}>
+                <p className="text-2xl font-bold mt-1" style={{ color: Colors[`${Restaurant?.restaurant?.theme}`] }}>
                   {remainingTime === "Ready" ? "Ready 🍽️" : remainingTime}
                 </p>
               </div>
             </div>
 
             {/* Items */}
-          {/* Items */}
-<div className="bg-white rounded-2xl p-5 shadow">
-  <h3 className="font-bold mb-3">Items</h3>
-  <div className="space-y-3">
-    {order.items.map((item, idx) => (
-      <div key={idx} className="bg-gray-50 rounded-xl p-3">
-        <div
-          className="px-3 py-2 rounded-full text-xs font-semibold flex items-center gap-1 mb-2"
-          style={{ backgroundColor: `${Colors.brown}30`, color: Colors.brown }}
-        >
-          <span>{item.quantity}×</span>
-          <span>{item.name}</span>
-          <span className="font-bold ml-1" style={{ color: Colors.brown }}>
-            ${((item.base_price || item.price) * item.quantity).toFixed(2)}
-          </span>
-        </div>
+            {/* Items */}
+            <div className="bg-white rounded-2xl p-5 shadow">
+              <h3 className="font-bold mb-3">Items</h3>
+              <div className="space-y-3">
+                {order.items.map((item, idx) => (
+                  <div key={idx} className="bg-gray-50 rounded-xl p-3">
+                    <div
+                      className="px-3 py-2 rounded-full text-xs font-semibold flex items-center gap-1 mb-2"
+                      style={{ backgroundColor: `${Colors[`${Restaurant?.restaurant?.theme}`]}30`, color: Colors[`${Restaurant?.restaurant?.theme}`] }}
+                    >
+                      <span>{item.quantity}×</span>
+                      <span>{item.name}</span>
+                      <span className="font-bold ml-1" style={{ color: Colors[`${Restaurant?.restaurant?.theme}`] }}>
+                        ${((item.base_price || item.price) * item.quantity).toFixed(2)}
+                      </span>
+                    </div>
 
-        {/* Selected Addons */}
-        {item.selectedAddons && item.selectedAddons.length > 0 && (
-          <div className="ml-4 space-y-1">
-            {item.selectedAddons.map((addon) => (
-              <div
-                key={addon._id}
-                className="px-2 py-1 rounded-full text-[10px] flex items-center gap-1"
-                style={{ backgroundColor: `${Colors.brown}10`, color: Colors.brown }}
-              >
-                <span>+{addon.name}</span>
-                <span className="font-bold ml-1">${addon.price.toFixed(2)}</span>
+                    {/* Selected Addons */}
+                    {item.selectedAddons && item.selectedAddons.length > 0 && (
+                      <div className="ml-4 space-y-1">
+                        {item.selectedAddons.map((addon) => (
+                          <div
+                            key={addon._id}
+                            className="px-2 py-1 rounded-full text-[10px] flex items-center gap-1"
+                            style={{ backgroundColor: `${Colors[`${Restaurant?.restaurant?.theme}`]}10`, color: Colors[`${Restaurant?.restaurant?.theme}`] }}
+                          >
+                            <span>+{addon.name}</span>
+                            <span className="font-bold ml-1">${addon.price.toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-    ))}
-  </div>
-</div>
+            </div>
 
 
             {/* Payment Summary */}

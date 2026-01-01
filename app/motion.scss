@@ -1,0 +1,150 @@
+$transition-speed: 0.3s;
+$soft-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+$hover-scale: 1.03;
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes overlay-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@layer utilities {
+  /* Smooth Page & Section Fade */
+  .page {
+    animation: fade-up 0.6s ease both;
+  }
+
+  /* Scroll reveal: JS adds .is-visible */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    will-change: transform, opacity;
+  }
+  .reveal.is-visible {
+    animation: fade-up 0.6s ease forwards;
+  }
+  .reveal.is-visible.delay-1 {
+    animation-delay: 0.08s;
+  }
+  .reveal.is-visible.delay-2 {
+    animation-delay: 0.16s;
+  }
+  .reveal.is-visible.delay-3 {
+    animation-delay: 0.24s;
+  }
+
+  .overlay-fade {
+    animation: overlay-fade 0.25s ease both;
+  }
+
+  /* Button Hover Effects */
+  .btn,
+  [data-slot="button"] {
+    transition: transform $transition-speed ease, box-shadow $transition-speed ease, filter $transition-speed ease,
+      opacity $transition-speed ease;
+    transform: translateZ(0);
+    will-change: transform;
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .btn:not(:disabled):hover,
+    [data-slot="button"]:not(:disabled):hover {
+      transform: scale($hover-scale);
+      box-shadow: $soft-shadow;
+    }
+  }
+
+  /* Card Hover Depth Effect */
+  .card,
+  [data-slot="card"] {
+    transition: transform 0.35s ease, box-shadow 0.35s ease, filter 0.35s ease;
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .card:hover,
+    [data-slot="card"]:hover {
+      transform: translateY(-6px) scale(1.01);
+      box-shadow: $soft-shadow;
+    }
+
+    /* Generic "card-like" blocks that already have a shadow + rounding */
+    :is(.shadow-sm, .shadow, .shadow-lg, .shadow-xl, .shadow-2xl)[class*="rounded"]:hover {
+      transform: translateY(-4px);
+      box-shadow: $soft-shadow;
+    }
+  }
+
+  /* Link Hover Glow */
+  .link {
+    position: relative;
+    transition: color $transition-speed ease;
+
+    &:hover {
+      color: #4f7cff;
+
+      &::after {
+        width: 100%;
+      }
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: #4f7cff;
+      transition: width $transition-speed ease;
+    }
+  }
+
+  /* Modal + sheet polish (Radix / Vaul) */
+  [data-slot$="-overlay"] {
+    transition: opacity $transition-speed ease;
+    will-change: opacity;
+  }
+  [data-slot$="-content"] {
+    will-change: transform, opacity;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .page,
+    .reveal,
+    .reveal.is-visible,
+    .overlay-fade {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+
+    .btn,
+    [data-slot="button"],
+    .card,
+    [data-slot="card"] {
+      transition: none !important;
+    }
+  }
+}
+
+

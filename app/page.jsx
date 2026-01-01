@@ -66,14 +66,14 @@ export default function WelcomePage() {
   }, [isScanning, router])
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 safe-area-inset relative overflow-hidden font-poppins">
+    <div className="page min-h-screen bg-white flex flex-col items-center justify-center p-6 safe-area-inset relative overflow-hidden font-poppins">
       {isScanning && (
-        <div className="fixed inset-0 z-50 bg-black flex flex-col">
+        <div className="overlay-fade fixed inset-0 z-50 bg-black flex flex-col">
           <div className="flex justify-between items-center p-6 z-10">
             <h2 className="text-white font-semibold">Scan Table QR</h2>
             <button
               onClick={() => setIsScanning(false)}
-              className="text-white p-2 bg-white/10 rounded-full backdrop-blur-sm"
+              className="btn text-white p-2 bg-white/10 rounded-full backdrop-blur-sm"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -84,11 +84,11 @@ export default function WelcomePage() {
           <div className="flex-1 flex flex-col items-center justify-center relative p-6">
             <div
               id="reader"
-              className="w-full max-w-sm aspect-square rounded-3xl overflow-hidden border-2 border-orange-400 bg-gray-900 shadow-2xl"
+              className="card w-full max-w-sm aspect-square rounded-3xl overflow-hidden border-2 border-orange-400 bg-gray-900 shadow-2xl"
             />
 
             {errorMsg && (
-              <div className="mt-8 p-4 bg-red-500/20 border border-red-500 rounded-xl text-red-200 text-sm text-center max-w-xs">
+              <div className="reveal is-visible mt-8 p-4 bg-red-500/20 border border-red-500 rounded-xl text-red-200 text-sm text-center max-w-xs">
                 {errorMsg}
               </div>
             )}
@@ -101,8 +101,8 @@ export default function WelcomePage() {
       )}
 
       {/* Main Content */}
-      <div className="mb-12">
-        <div className="w-56 h-56 rounded-full bg-orange-50 flex items-center justify-center relative">
+      <div className="reveal mb-12">
+        <div className="card w-56 h-56 rounded-full bg-orange-50 flex items-center justify-center relative">
           <div className="text-[140px] leading-none select-none">🍋</div>
           <div className="absolute -top-2 -right-2 bg-orange-400 p-2 rounded-xl shadow-lg animate-bounce">
             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,7 +117,7 @@ export default function WelcomePage() {
         </div>
       </div>
 
-      <div className="text-center mb-12">
+      <div className="reveal delay-1 text-center mb-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-3 tracking-tight">Welcome to DineQuick!</h1>
         <p className="text-gray-500 max-w-[280px] mx-auto text-lg leading-relaxed">
           Scan the QR code on your table to browse the menu and order.
@@ -127,7 +127,7 @@ export default function WelcomePage() {
       <button
         onClick={handleStartScanning}
         disabled={isLoading}
-        className="w-full max-w-sm bg-orange-400 active:bg-orange-500 hover:bg-orange-400/90 text-white font-bold py-5 px-8 rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl shadow-orange-200 disabled:opacity-70"
+        className="btn reveal delay-2 w-full max-w-sm bg-orange-400 active:bg-orange-500 hover:bg-orange-400/90 text-white font-bold py-5 px-8 rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl shadow-orange-200 disabled:opacity-70"
       >
         {isLoading ? (
           <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />

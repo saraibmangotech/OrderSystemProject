@@ -23,7 +23,7 @@ export default function TableEntryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white p-6 max-w-md mx-auto">
+    <div className="page min-h-screen bg-white p-6 max-w-md mx-auto">
       {/* Header */}
       <div className="flex items-center mb-8">
         <button onClick={() => router.back()} className="mr-4">
@@ -74,7 +74,7 @@ export default function TableEntryPage() {
       <button
         onClick={handleSubmit}
         disabled={!tableNumber}
-        className="w-full bg-orange-400 hover:bg-orange-500 disabled:bg-gray-300 text-white font-semibold py-4 rounded-2xl mb-4 transition-colors"
+        className="btn w-full bg-orange-400 hover:bg-orange-500 disabled:bg-gray-300 text-white font-semibold py-4 rounded-2xl mb-4 transition-colors"
       >
         Submit
       </button>

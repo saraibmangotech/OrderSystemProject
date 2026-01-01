@@ -1,0 +1,1165 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#fb923c" />
+    <title>ScanServe — QR Ordering for Restaurants</title>
+    <meta
+      name="description"
+      content="ScanServe is a SaaS QR ordering system for restaurants: scan QR, browse menu, customize items, table auto-detection, online payments, and POS integration. Simple enough for a child to order."
+    />
+
+    <!-- Font (matches app theme intent) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --orange-400: #fb923c;
+        --orange-500: #f97316;
+        --orange-50: #fff7ed;
+        --gray-900: #111827;
+        --gray-800: #1f2937;
+        --gray-700: #374151;
+        --gray-600: #4b5563;
+        --gray-500: #6b7280;
+        --gray-200: #e5e7eb;
+        --gray-100: #f3f4f6;
+        --shadow-soft: 0 10px 25px rgba(0, 0, 0, 0.08);
+        --radius-xl: 24px;
+        --radius-2xl: 32px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-text-size-adjust: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: Poppins, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        color: var(--gray-900);
+        background: #ffffff;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      /* Motion + UI polish (mirrors app/motion.scss intent) */
+      @keyframes fade-up {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .page {
+        animation: fade-up 0.6s ease both;
+      }
+      .reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        will-change: transform, opacity;
+      }
+      .reveal.is-visible {
+        animation: fade-up 0.6s ease forwards;
+      }
+      .reveal.is-visible.delay-1 {
+        animation-delay: 0.08s;
+      }
+      .reveal.is-visible.delay-2 {
+        animation-delay: 0.16s;
+      }
+      .reveal.is-visible.delay-3 {
+        animation-delay: 0.24s;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 14px 18px;
+        border-radius: 18px;
+        border: 1px solid transparent;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease, opacity 0.3s ease;
+        user-select: none;
+        touch-action: manipulation;
+        transform: translateZ(0);
+        will-change: transform;
+      }
+      .btn:active {
+        transform: scale(0.98);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .btn:hover {
+          transform: scale(1.03);
+          box-shadow: var(--shadow-soft);
+        }
+      }
+
+      .btn-primary {
+        background: var(--orange-400);
+        color: #ffffff;
+        box-shadow: 0 18px 40px rgba(251, 146, 60, 0.28);
+      }
+      .btn-primary:hover {
+        filter: brightness(0.98);
+      }
+      .btn-ghost {
+        background: rgba(17, 24, 39, 0.04);
+        border-color: rgba(17, 24, 39, 0.06);
+        color: var(--gray-800);
+      }
+
+      .card {
+        background: #ffffff;
+        border: 1px solid rgba(17, 24, 39, 0.08);
+        border-radius: var(--radius-2xl);
+        box-shadow: 0 12px 30px rgba(17, 24, 39, 0.06);
+        transition: transform 0.35s ease, box-shadow 0.35s ease, filter 0.35s ease;
+        will-change: transform;
+        transform: translateZ(0);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .card:hover {
+          transform: translateY(-6px) scale(1.01);
+          box-shadow: var(--shadow-soft);
+        }
+      }
+
+      /* Layout */
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(17, 24, 39, 0.06);
+      }
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 0;
+        gap: 14px;
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .brand-badge {
+        width: 44px;
+        height: 44px;
+        border-radius: 16px;
+        background: var(--orange-50);
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(251, 146, 60, 0.35);
+      }
+      .brand-badge img {
+        width: 22px;
+        height: 22px;
+      }
+      .nav-links {
+        display: none;
+        gap: 18px;
+        color: var(--gray-700);
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .nav-links a:hover {
+        color: var(--gray-900);
+      }
+      .nav-cta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      @media (min-width: 860px) {
+        .nav-links {
+          display: flex;
+        }
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        padding: 54px 0 26px;
+      }
+      .hero-bg {
+        position: absolute;
+        inset: -200px -140px auto auto;
+        width: 420px;
+        height: 420px;
+        background: radial-gradient(circle at 30% 30%, rgba(251, 146, 60, 0.35), rgba(251, 146, 60, 0));
+        filter: blur(2px);
+        pointer-events: none;
+      }
+      .hero-grid {
+        display: grid;
+        gap: 18px;
+        align-items: center;
+      }
+      @media (min-width: 980px) {
+        .hero-grid {
+          grid-template-columns: 1.1fr 0.9fr;
+          gap: 28px;
+        }
+      }
+      .headline {
+        font-size: 34px;
+        line-height: 1.08;
+        letter-spacing: -0.03em;
+        margin: 0 0 10px;
+      }
+      @media (min-width: 680px) {
+        .headline {
+          font-size: 46px;
+        }
+      }
+      .subhead {
+        margin: 0 0 18px;
+        color: var(--gray-600);
+        font-size: 16px;
+        line-height: 1.55;
+        max-width: 58ch;
+      }
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+      }
+      .note {
+        margin-top: 14px;
+        font-size: 13px;
+        color: var(--gray-500);
+      }
+      .pill-row {
+        margin-top: 18px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        background: rgba(251, 146, 60, 0.12);
+        border: 1px solid rgba(251, 146, 60, 0.25);
+        color: var(--gray-800);
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .mock {
+        padding: 18px;
+      }
+      .mock-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .mock-title {
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .mock-chip {
+        font-size: 12px;
+        font-weight: 800;
+        color: #ffffff;
+        background: var(--orange-400);
+        border-radius: 999px;
+        padding: 8px 10px;
+        box-shadow: 0 16px 40px rgba(251, 146, 60, 0.25);
+      }
+      .mock-frame {
+        background: #0b1220;
+        border: 2px solid var(--orange-400);
+        border-radius: 26px;
+        aspect-ratio: 1 / 1;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        position: relative;
+      }
+      .mock-frame::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 40% 20%, rgba(251, 146, 60, 0.18), rgba(0, 0, 0, 0));
+        pointer-events: none;
+      }
+      .mock-qr {
+        width: min(220px, 78%);
+        height: auto;
+        opacity: 0.96;
+        filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.35));
+      }
+      .mock-caption {
+        margin-top: 14px;
+        text-align: center;
+        color: var(--gray-600);
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      section {
+        padding: 26px 0;
+      }
+      .section-head {
+        margin-bottom: 14px;
+      }
+      .kicker {
+        color: var(--orange-500);
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        font-size: 12px;
+        margin: 0 0 6px;
+      }
+      .h2 {
+        margin: 0 0 8px;
+        font-size: 22px;
+        letter-spacing: -0.02em;
+      }
+      @media (min-width: 680px) {
+        .h2 {
+          font-size: 28px;
+        }
+      }
+      .p {
+        margin: 0;
+        color: var(--gray-600);
+        line-height: 1.6;
+      }
+
+      .grid-3 {
+        display: grid;
+        gap: 14px;
+      }
+      @media (min-width: 860px) {
+        .grid-3 {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+
+      .feature {
+        padding: 18px;
+      }
+      .icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 18px;
+        background: var(--orange-50);
+        border: 1px solid rgba(251, 146, 60, 0.3);
+        display: grid;
+        place-items: center;
+        margin-bottom: 12px;
+      }
+      .feature h3 {
+        margin: 0 0 6px;
+        font-size: 16px;
+        letter-spacing: -0.01em;
+      }
+      .feature p {
+        margin: 0;
+        color: var(--gray-600);
+        line-height: 1.55;
+        font-size: 14px;
+      }
+
+      .how {
+        display: grid;
+        gap: 14px;
+      }
+      @media (min-width: 980px) {
+        .how {
+          grid-template-columns: 1.1fr 0.9fr;
+          gap: 18px;
+          align-items: start;
+        }
+      }
+
+      .steps {
+        padding: 18px;
+      }
+      .step {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 12px 0;
+        border-top: 1px solid rgba(17, 24, 39, 0.06);
+      }
+      .step:first-child {
+        border-top: 0;
+        padding-top: 0;
+      }
+      .step-num {
+        flex: none;
+        width: 34px;
+        height: 34px;
+        border-radius: 14px;
+        background: rgba(251, 146, 60, 0.14);
+        border: 1px solid rgba(251, 146, 60, 0.25);
+        display: grid;
+        place-items: center;
+        font-weight: 900;
+        color: var(--orange-500);
+      }
+      .step strong {
+        display: block;
+        margin: 0 0 3px;
+      }
+      .step span {
+        display: block;
+        color: var(--gray-600);
+        font-size: 14px;
+        line-height: 1.55;
+      }
+
+      .cta {
+        padding: 22px;
+        background: linear-gradient(180deg, rgba(255, 247, 237, 0.9), rgba(255, 255, 255, 1));
+        border: 1px solid rgba(251, 146, 60, 0.22);
+      }
+      .cta h3 {
+        margin: 0 0 8px;
+        font-size: 20px;
+        letter-spacing: -0.02em;
+      }
+      .cta p {
+        margin: 0 0 14px;
+        color: var(--gray-600);
+        line-height: 1.6;
+        font-size: 14px;
+      }
+      .cta-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .faq {
+        padding: 18px;
+      }
+      .form {
+        padding: 18px;
+      }
+      .form-grid {
+        display: grid;
+        gap: 12px;
+      }
+      @media (min-width: 860px) {
+        .form-grid.two {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      label {
+        display: block;
+        font-weight: 800;
+        color: var(--gray-800);
+        font-size: 13px;
+        margin: 0 0 6px;
+      }
+      .input,
+      .textarea {
+        width: 100%;
+        border-radius: 18px;
+        border: 1px solid rgba(17, 24, 39, 0.10);
+        background: rgba(243, 244, 246, 0.7);
+        padding: 14px 14px;
+        font-size: 14px;
+        color: var(--gray-900);
+        outline: none;
+        transition: box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+      }
+      .textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+      .input:focus,
+      .textarea:focus {
+        border-color: rgba(249, 115, 22, 0.55);
+        box-shadow: 0 0 0 4px rgba(251, 146, 60, 0.18);
+        background: #ffffff;
+      }
+      .help {
+        color: var(--gray-500);
+        font-size: 12px;
+        line-height: 1.45;
+        margin-top: 6px;
+      }
+      .alert {
+        border-radius: 18px;
+        padding: 12px 14px;
+        font-weight: 700;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      .alert-success {
+        background: rgba(34, 197, 94, 0.12);
+        border: 1px solid rgba(34, 197, 94, 0.25);
+        color: rgb(22, 101, 52);
+      }
+      .alert-error {
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        color: rgb(153, 27, 27);
+      }
+      .btn[aria-busy="true"] {
+        opacity: 0.78;
+        cursor: not-allowed;
+      }
+      details {
+        border-top: 1px solid rgba(17, 24, 39, 0.06);
+        padding: 12px 0;
+      }
+      details:first-child {
+        border-top: 0;
+        padding-top: 0;
+      }
+      summary {
+        cursor: pointer;
+        font-weight: 800;
+        color: var(--gray-800);
+        list-style: none;
+      }
+      summary::-webkit-details-marker {
+        display: none;
+      }
+      details p {
+        margin: 8px 0 0;
+        color: var(--gray-600);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      footer {
+        padding: 26px 0 40px;
+        border-top: 1px solid rgba(17, 24, 39, 0.06);
+        color: var(--gray-500);
+        font-size: 13px;
+      }
+      .footer-grid {
+        display: grid;
+        gap: 14px;
+      }
+      @media (min-width: 860px) {
+        .footer-grid {
+          grid-template-columns: 1.1fr 0.9fr;
+          align-items: center;
+        }
+      }
+      .footer-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        justify-content: flex-start;
+      }
+      @media (min-width: 860px) {
+        .footer-links {
+          justify-content: flex-end;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .page,
+        .reveal,
+        .reveal.is-visible {
+          animation: none !important;
+          opacity: 1 !important;
+          transform: none !important;
+        }
+        .btn,
+        .card {
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body class="page">
+    <header>
+      <div class="container">
+        <div class="nav">
+          <a class="brand" href="#top" aria-label="ScanServe home">
+            <span class="brand-badge" aria-hidden="true">
+              <img src="/icon.svg" alt="" />
+            </span>
+            <span>ScanServe</span>
+          </a>
+
+          <nav class="nav-links" aria-label="Primary">
+            <a href="#features">Features</a>
+            <a href="#how">How it works</a>
+            <a href="#pos">POS</a>
+            <a href="#faq">FAQ</a>
+            <a href="#contact">Contact</a>
+          </nav>
+
+          <div class="nav-cta">
+            <a class="btn btn-ghost" href="/menu" title="Preview the customer menu demo">View Demo Menu</a>
+            <a class="btn btn-primary" href="#trial" title="Start your free trial">Start Free Trial</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-bg" aria-hidden="true"></div>
+        <div class="container">
+          <div class="hero-grid">
+            <div>
+              <p class="kicker reveal">QR Ordering System for Restaurants</p>
+              <h1 class="headline reveal delay-1">
+                Let guests order in seconds —
+                <span style="color: var(--orange-500)">no app</span>, no waiting, no confusion.
+              </h1>
+              <p class="subhead reveal delay-2">
+                ScanServe turns your menu into a delightful mobile experience: scan a table QR, browse a clean menu, customize
+                items, (optionally) pay online, and send orders to staff or your POS. Designed to be simple enough for a child to
+                place an order.
+              </p>
+
+              <div class="hero-actions reveal delay-3">
+                <a class="btn btn-primary" href="#trial">
+                  <!-- icon: spark -->
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2l1.2 5.2L18 8l-4.8 0.8L12 14l-1.2-5.2L6 8l4.8-0.8L12 2z" />
+                    <path d="M19 13l.7 3 2.3.7-2.3.7-.7 3-.7-3-2.3-.7 2.3-.7.7-3z" />
+                  </svg>
+                  Start 3‑Month Free Trial
+                </a>
+                <a class="btn btn-ghost" href="#demo">
+                  <!-- icon: play -->
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                  See the Demo Flow
+                </a>
+              </div>
+
+              <div class="pill-row reveal delay-3" aria-label="Highlights">
+                <span class="pill">
+                  <span aria-hidden="true">📷</span> Scan QR
+                </span>
+                <span class="pill">
+                  <span aria-hidden="true">🧾</span> Menu + Item Details
+                </span>
+                <span class="pill">
+                  <span aria-hidden="true">🧩</span> Customizations
+                </span>
+                <span class="pill">
+                  <span aria-hidden="true">💳</span> Online Payments
+                </span>
+                <span class="pill">
+                  <span aria-hidden="true">🧠</span> Table Auto‑Detect
+                </span>
+                <span class="pill">
+                  <span aria-hidden="true">🔌</span> POS Integration
+                </span>
+              </div>
+
+              <p class="note reveal delay-3">
+                Built for fast service: fewer questions, fewer mistakes, faster table turnover.
+              </p>
+            </div>
+
+            <div class="card mock reveal delay-2" aria-label="Product preview">
+              <div class="mock-top">
+                <div class="mock-title">Customer Experience</div>
+                <div class="mock-chip">Simple • Fast • Fun</div>
+              </div>
+              <div class="mock-frame">
+                <!-- simple “QR” illustration -->
+                <svg class="mock-qr" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+                  <rect x="8" y="8" width="34" height="34" rx="6" stroke="white" stroke-width="4" />
+                  <rect x="78" y="8" width="34" height="34" rx="6" stroke="white" stroke-width="4" />
+                  <rect x="8" y="78" width="34" height="34" rx="6" stroke="white" stroke-width="4" />
+                  <rect x="20" y="20" width="10" height="10" rx="2" fill="white" />
+                  <rect x="90" y="20" width="10" height="10" rx="2" fill="white" />
+                  <rect x="20" y="90" width="10" height="10" rx="2" fill="white" />
+                  <path
+                    d="M58 18h12M58 30h6M58 42h12M52 58h12M70 58h12M58 70h6M52 82h12M70 82h12M58 94h12"
+                    stroke="white"
+                    stroke-width="4"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </div>
+              <div class="mock-caption">“Align QR code within the orange frame.”</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="features">
+        <div class="container">
+          <div class="section-head">
+            <p class="kicker reveal">Everything you need</p>
+            <h2 class="h2 reveal delay-1">A complete QR ordering system — from scan to payment.</h2>
+            <p class="p reveal delay-2">
+              Configure once, then let guests handle the rest. Your staff stays focused on hospitality, not taking orders.
+            </p>
+          </div>
+
+          <div class="grid-3">
+            <div class="card feature reveal">
+              <div class="icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2">
+                  <path d="M4 7V5a1 1 0 0 1 1-1h2" />
+                  <path d="M20 7V5a1 1 0 0 0-1-1h-2" />
+                  <path d="M4 17v2a1 1 0 0 0 1 1h2" />
+                  <path d="M20 17v2a1 1 0 0 1-1 1h-2" />
+                  <path d="M7 12h10" />
+                </svg>
+              </div>
+              <h3>Scan QR → Menu</h3>
+              <p>Guests scan and instantly see your menu — no downloads and no login required.</p>
+            </div>
+
+            <div class="card feature reveal delay-1">
+              <div class="icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2">
+                  <path d="M12 3v18" />
+                  <path d="M3 12h18" />
+                  <path d="M8 8h8v8H8z" />
+                </svg>
+              </div>
+              <h3>Item details &amp; customizations</h3>
+              <p>Modifiers, add-ons, notes, and combos — made easy with big buttons and clear choices.</p>
+            </div>
+
+            <div class="card feature reveal delay-2">
+              <div class="icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2">
+                  <path d="M3 7h18" />
+                  <path d="M5 7l1 14h12l1-14" />
+                  <path d="M8 7V5a4 4 0 0 1 8 0v2" />
+                </svg>
+              </div>
+              <h3>Table number (manual or auto)</h3>
+              <p>Use table-specific QRs to auto-fill table number — or let guests enter it with a keypad.</p>
+            </div>
+
+            <div class="card feature reveal">
+              <div class="icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2">
+                  <path d="M3 11h18" />
+                  <path d="M7 7h10" />
+                  <path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
+                </svg>
+              </div>
+              <h3>Online payments (optional)</h3>
+              <p>Perfect for “payment first” restaurants — accept card payments before sending to the kitchen.</p>
+            </div>
+
+            <div class="card feature reveal delay-1">
+              <div class="icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2">
+                  <path d="M12 2l3 7h7l-5.5 4 2.5 9-7-5-7 5 2.5-9L2 9h7z" />
+                </svg>
+              </div>
+              <h3>Child-simple UI</h3>
+              <p>Large tap targets, clean typography, and a guided flow — built for speed and zero confusion.</p>
+            </div>
+
+            <div class="card feature reveal delay-2" id="pos">
+              <div class="icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2">
+                  <path d="M8 12h8" />
+                  <path d="M12 8v8" />
+                  <path d="M4 6h16v12H4z" />
+                  <path d="M6 18v3" />
+                  <path d="M18 18v3" />
+                </svg>
+              </div>
+              <h3>POS integration</h3>
+              <p>Connect ScanServe to your existing POS for smoother operations (sync items, route tickets, reconcile sales).</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="how">
+        <div class="container">
+          <div class="section-head">
+            <p class="kicker reveal">How it works</p>
+            <h2 class="h2 reveal delay-1">From QR scan to kitchen — in 4 simple steps.</h2>
+            <p class="p reveal delay-2">You can run QR ordering alongside staff ordering, or go fully self-serve.</p>
+          </div>
+
+          <div class="how">
+            <div class="card steps reveal">
+              <div class="step">
+                <div class="step-num">1</div>
+                <div>
+                  <strong>Scan table QR</strong>
+                  <span>Guests scan and the table is auto-detected (or they enter the number).</span>
+                </div>
+              </div>
+              <div class="step">
+                <div class="step-num">2</div>
+                <div>
+                  <strong>Browse menu</strong>
+                  <span>Fast categories, clear photos, and readable item details.</span>
+                </div>
+              </div>
+              <div class="step">
+                <div class="step-num">3</div>
+                <div>
+                  <strong>Customize &amp; confirm</strong>
+                  <span>Add-ons, notes, spicy levels, sizes — all with big, obvious buttons.</span>
+                </div>
+              </div>
+              <div class="step">
+                <div class="step-num">4</div>
+                <div>
+                  <strong>Pay (optional) &amp; send</strong>
+                  <span>Collect payment first if needed, then route orders to staff or your POS.</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card cta reveal delay-1" id="demo">
+              <h3>Try the customer demo right now</h3>
+              <p>
+                Want to feel the “child-simple” flow? Use your existing demo pages:
+              </p>
+              <div class="cta-actions">
+                <a class="btn btn-primary" href="https://order-system-project-two.vercel.app/" title="Open the QR scanner page (customer flow)">
+                  Open QR Scanner
+                </a>
+                <a class="btn btn-ghost" href="/table-entry" title="Enter a table number manually (customer flow)">
+                  Enter Table Number
+                </a>
+              </div>
+              <p class="note" style="margin: 12px 0 0">
+                Tip: for a “table-specific QR”, encode the table number directly in the QR content.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="trial">
+        <div class="container">
+          <div class="section-head">
+            <p class="kicker reveal">Pricing</p>
+            <h2 class="h2 reveal delay-1">Start with a 3‑month free trial.</h2>
+            <p class="p reveal delay-2">
+              Get set up, test in one location, and see results before you commit.
+            </p>
+          </div>
+
+          <div class="grid-3">
+            <div class="card feature reveal">
+              <div class="icon" aria-hidden="true">🎁</div>
+              <h3>3‑month free trial</h3>
+              <p>Full experience to validate QR ordering in your restaurant — no pressure.</p>
+            </div>
+            <div class="card feature reveal delay-1">
+              <div class="icon" aria-hidden="true">⚡</div>
+              <h3>Fast onboarding</h3>
+              <p>We’ll help you set up your menu, modifiers, and table QRs quickly.</p>
+            </div>
+            <div class="card feature reveal delay-2">
+              <div class="icon" aria-hidden="true">🤝</div>
+              <h3>POS-ready</h3>
+              <p>Plan integrations around your existing workflow so staff adoption is easy.</p>
+            </div>
+          </div>
+
+          <div class="card cta reveal" style="margin-top: 14px">
+            <h3>Ready to launch ScanServe?</h3>
+            <p>
+              Send your details — we’ll reply with next steps for your 3‑month free trial and POS integration options.
+            </p>
+            <div class="cta-actions">
+              <a class="btn btn-primary" href="#contact">Contact Us</a>
+              <a class="btn btn-ghost" href="#demo">View Demo Flow</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact">
+        <div class="container">
+          <div class="section-head">
+            <p class="kicker reveal">Contact</p>
+            <h2 class="h2 reveal delay-1">Contact us to get started</h2>
+            <p class="p reveal delay-2">
+              Tell us about your restaurant. We’ll get back to you soon.
+            </p>
+          </div>
+
+          <div class="how">
+            <div class="card form reveal">
+              <form id="contactForm" novalidate>
+                <div class="form-grid two">
+                  <div>
+                    <label for="restaurant_name">Restaurant name <span style="font-weight: 600; color: var(--gray-500)">(optional)</span></label>
+                    <input class="input" id="restaurant_name" name="restaurant_name" placeholder="e.g., Test Cafe" autocomplete="organization" />
+                  </div>
+                  <div>
+                    <label for="contact_person_name">Contact person</label>
+                    <input class="input" id="contact_person_name" name="contact_person_name" placeholder="e.g., John Doe" autocomplete="name" required />
+                  </div>
+                </div>
+
+                <div class="form-grid two" style="margin-top: 12px">
+                  <div>
+                    <label for="email">Email</label>
+                    <input class="input" id="email" name="email" type="email" placeholder="e.g., john@example.com" autocomplete="email" required />
+                  </div>
+                  <div>
+                    <label for="phone_number">Phone number</label>
+                    <input class="input" id="phone_number" name="phone_number" placeholder="e.g., 03001234567" autocomplete="tel" required />
+                    <div class="help">Include country/area code if needed.</div>
+                  </div>
+                </div>
+
+                <div style="margin-top: 12px">
+                  <label for="body">Message</label>
+                  <textarea class="textarea" id="body" name="body" placeholder="Tell us what you need (QR ordering, payment first, POS system name, locations, etc.)" required></textarea>
+                </div>
+
+                <div id="contactAlert" style="display: none; margin-top: 12px"></div>
+
+                <div class="cta-actions" style="margin-top: 14px">
+                  <button class="btn btn-primary" id="contactSubmit" type="submit">
+                    Send Inquiry
+                  </button>
+                  <a class="btn btn-ghost" href="#trial">See Free Trial</a>
+                </div>
+                <div class="help" style="margin-top: 10px">
+                  By sending this form, you agree that ScanServe may contact you about your inquiry.
+                </div>
+              </form>
+            </div>
+
+            <div class="card cta reveal delay-1">
+              <h3>What we can help with</h3>
+              <p style="margin-bottom: 10px">
+                We’ll tailor ScanServe to your workflow:
+              </p>
+              <div class="pill-row" style="margin-top: 0">
+                <span class="pill"><span aria-hidden="true">🧾</span> Menu setup</span>
+                <span class="pill"><span aria-hidden="true">🧩</span> Modifiers &amp; add-ons</span>
+                <span class="pill"><span aria-hidden="true">🧠</span> Table QR strategy</span>
+                <span class="pill"><span aria-hidden="true">💳</span> Payments</span>
+                <span class="pill"><span aria-hidden="true">🔌</span> POS integration</span>
+              </div>
+              <p class="note" style="margin: 12px 0 0">
+                If you already use a POS, tell us the name in your message.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="faq">
+        <div class="container">
+          <div class="section-head">
+            <p class="kicker reveal">FAQ</p>
+            <h2 class="h2 reveal delay-1">Common questions from restaurant owners</h2>
+            <p class="p reveal delay-2">Short answers now — we can tailor details for your setup.</p>
+          </div>
+
+          <div class="card faq reveal">
+            <details open>
+              <summary>Does it work without online payments?</summary>
+              <p>
+                Yes. You can run ScanServe as “order now, pay later” — guests place the order, then pay at the counter/table as
+                usual.
+              </p>
+            </details>
+            <details>
+              <summary>Can the table number be auto-fetched?</summary>
+              <p>
+                Yes. Use table-specific QR codes (e.g., QR content “12”) so the table number is saved automatically after scan.
+              </p>
+            </details>
+            <details>
+              <summary>Is the UI really easy?</summary>
+              <p>
+                That’s the goal: big buttons, minimal steps, clear language, and a guided flow that’s simple enough for a child.
+              </p>
+            </details>
+            <details>
+              <summary>Do you integrate with POS systems?</summary>
+              <p>
+                Yes — we can integrate with existing POS workflows depending on the system (items sync, ticket routing, sales
+                reconciliation). Tell us what you use and we’ll advise the best path.
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <div class="brand" style="gap: 10px">
+              <span class="brand-badge" aria-hidden="true">
+                <img src="/icon.svg" alt="" />
+              </span>
+              <span>ScanServe</span>
+            </div>
+            <div style="margin-top: 8px">
+              QR ordering SaaS for restaurants — fast, friendly, and built for real service.
+            </div>
+          </div>
+          <div class="footer-links" aria-label="Footer">
+            <a href="#features">Features</a>
+            <a href="#how">How it works</a>
+            <a href="#trial">Free trial</a>
+            <a href="#faq">FAQ</a>
+            <a href="#contact">Contact</a>
+          </div>
+        </div>
+        <div style="margin-top: 14px">© <span id="year"></span> ScanServe. All rights reserved.</div>
+      </div>
+    </footer>
+
+    <script>
+      // Footer year
+      document.getElementById("year").textContent = String(new Date().getFullYear());
+
+      // Scroll reveal (mirrors your app’s .reveal/.is-visible pattern)
+      const els = Array.from(document.querySelectorAll(".reveal"));
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) {
+              e.target.classList.add("is-visible");
+              io.unobserve(e.target);
+            }
+          }
+        },
+        { threshold: 0.12 }
+      );
+      els.forEach((el) => io.observe(el));
+
+      // Contact form -> ScanServe inquiry API
+      const contactForm = document.getElementById("contactForm");
+      const contactSubmit = document.getElementById("contactSubmit");
+      const contactAlert = document.getElementById("contactAlert");
+
+      function showAlert(kind, text) {
+        contactAlert.className = "alert " + (kind === "success" ? "alert-success" : "alert-error");
+        contactAlert.textContent = text;
+        contactAlert.style.display = "block";
+      }
+
+      function isValidEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim());
+      }
+
+      contactForm?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        contactAlert.style.display = "none";
+
+        const payload = {
+          restaurant_name: document.getElementById("restaurant_name").value.trim(),
+          contact_person_name: document.getElementById("contact_person_name").value.trim(),
+          email: document.getElementById("email").value.trim(),
+          phone_number: document.getElementById("phone_number").value.trim(),
+          body: document.getElementById("body").value.trim(),
+        };
+
+        if (!payload.contact_person_name) return showAlert("error", "Please enter the contact person name.");
+        if (!payload.email || !isValidEmail(payload.email)) return showAlert("error", "Please enter a valid email address.");
+        if (!payload.phone_number) return showAlert("error", "Please enter a phone number.");
+        if (!payload.body) return showAlert("error", "Please enter a message.");
+
+        try {
+          contactSubmit.setAttribute("aria-busy", "true");
+          contactSubmit.disabled = true;
+          contactSubmit.textContent = "Sending...";
+
+          async function postJson(url) {
+            const res = await fetch(url, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+            const data = await res.json().catch(() => null);
+            return { res, data };
+          }
+
+          // Prefer same-origin proxy to avoid CORS. If site is deployed as static-only,
+          // this may 404; we then try the upstream directly (requires CORS enabled).
+          let out = await postJson("/api/send-inquiry");
+          if (out.res.status === 404) {
+            out = await postJson("https://scanserve.mangotech-api.com/api/email/send-inquiry");
+          }
+
+          const { res, data } = out;
+          if (!res.ok || (data && data.status === false)) {
+            const msg =
+              (data && (data.message || data.error)) ||
+              `Failed to send inquiry (HTTP ${res.status}). Please try again.`;
+            showAlert("error", msg);
+            return;
+          }
+
+          showAlert(
+            "success",
+            (data && data.data && data.data.message) || "Inquiry sent successfully. We’ll get back to you soon."
+          );
+          contactForm.reset();
+        } catch (err) {
+          // Most common: browser CORS block when calling the upstream directly from a static site.
+          showAlert(
+            "error",
+            "Could not send from the browser (likely CORS). If your site is deployed as static-only, enable CORS on the API OR deploy ScanServe as a Next.js site so /api/send-inquiry can proxy the request."
+          );
+        } finally {
+          contactSubmit.removeAttribute("aria-busy");
+          contactSubmit.disabled = false;
+          contactSubmit.textContent = "Send Inquiry";
+        }
+      });
+    </script>
+  </body>
+</html>
+
+
