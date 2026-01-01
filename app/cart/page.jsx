@@ -6,8 +6,14 @@ import Colors from "../assets/colors"
 
 
 export default function CartPage() {
-   let Restaurant = localStorage.getItem('restaurantData')
-    Restaurant = JSON.parse(Restaurant)
+const [Restaurant, setRestaurant] = useState(null)
+
+useEffect(() => {
+  const data = localStorage.getItem("restaurantData")
+  if (data) {
+    setRestaurant(JSON.parse(data))
+  }
+}, [])
   const [cart, setCart] = useState([])
   const [expandedItems, setExpandedItems] = useState({})
   const [tableNumber, setTableNumber] = useState("")
@@ -113,7 +119,7 @@ export default function CartPage() {
       timestamp: new Date().toISOString(),
       status: "preparing",
     }
-   
+
     const existingOrders = JSON.parse(localStorage.getItem("orders")) || []
 
     localStorage.setItem("currentOrder", JSON.stringify(order))

@@ -9,8 +9,14 @@ export default function OrderConfirmationPage() {
   const [order, setOrder] = useState(null)
   const [currentStatus, setCurrentStatus] = useState("preparing")
   const router = useRouter()
-  let Restaurant = localStorage.getItem('restaurantData')
-  Restaurant = JSON.parse(Restaurant)
+const [Restaurant, setRestaurant] = useState(null)
+
+useEffect(() => {
+  const data = localStorage.getItem("restaurantData")
+  if (data) {
+    setRestaurant(JSON.parse(data))
+  }
+}, [])
   useEffect(() => {
     const savedOrder = localStorage.getItem("currentOrder")
     if (savedOrder) {
