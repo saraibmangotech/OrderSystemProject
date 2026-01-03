@@ -12,7 +12,11 @@ const Skeleton = ({ className }) => (
 
 function ProductDetailContent() {
   const router = useRouter()
+       let Restaurant = localStorage.getItem('restaurantData')
+    Restaurant = JSON.parse(Restaurant)
   const [product, setProduct] = useState(null)
+  const [customization, setCustomization] = useState("")
+
   const [loading, setLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
   const [selectedAddons, setSelectedAddons] = useState([])
@@ -75,22 +79,24 @@ function ProductDetailContent() {
     return (product.base_price + addonsTotal) * quantity
   }
 
-  const handleAddToCart = () => {
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]")
+ const handleAddToCart = () => {
+  const cart = JSON.parse(localStorage.getItem("cart") || "[]")
 
-    cart.push({
-      _id: product._id,
-      name: product.name,
-      price: product.base_price,
-      image: product.image_urls?.[0],
-      quantity,
-      selectedAddons,
-    })
+  cart.push({
+    _id: product._id,
+    name: product.name,
+    price: product.base_price,
+    image: product.image_urls?.[0],
+    quantity,
+    selectedAddons,
+    customization, // 👈 ADDED HERE
+  })
 
-    localStorage.setItem("cart", JSON.stringify(cart))
-    showSuccessToast("Added to cart successfully!")
-    router.push("/menu")
-  }
+  localStorage.setItem("cart", JSON.stringify(cart))
+  showSuccessToast("Added to cart successfully!")
+  router.push("/menu")
+}
+
 
   if (loading) {
     return (
@@ -101,6 +107,7 @@ function ProductDetailContent() {
       </div>
     )
   }
+console.log(product,'product');
 
   if (!product) return null
 
@@ -136,12 +143,18 @@ function ProductDetailContent() {
         <div className="flex justify-between items-start gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold">{product.name}</h1>
+              {product?.description && (
+    <p className="mt-2 text-sm text-gray-600 leading-relaxed">
+      {product.description}
+    </p>
+  )}
             <p
               className="text-xl font-bold mt-1"
-              style={{ color: Colors.brown }}
+              style={{ color: Restaurant?.restaurant?.theme }}
             >
               ${product.base_price.toFixed(2)}
             </p>
+            
           </div>
 
           <div className="flex items-center bg-gray-100 rounded-full p-1">
@@ -182,20 +195,20 @@ function ProductDetailContent() {
                         }`}
                         style={{
                           borderColor: isSelected
-                            ? Colors.brown
+                            ? Restaurant?.restaurant?.theme
                             : "#eee",
                         }}
                       >
                         <input
                           type={group.selection_type === "single" ? "radio" : "checkbox"}
                           checked={isSelected}
-                          className="w-5 h-5 rounded cursor-pointer" style={{ accentColor: Colors.brown }}
+                          className="w-5 h-5 rounded cursor-pointer" style={{ accentColor: Restaurant?.restaurant?.theme }}
                           onChange={() => toggleAddon(addon, group)}
                         />
                         <span className="flex-1 ml-3">{addon.name}</span>
                         <span
                           className="font-bold"
-                          style={{ color: Colors.brown }}
+                          style={{ color: Restaurant?.restaurant?.theme }}
                         >
                           +${Number(addon.price).toFixed(2)}
                         </span>
@@ -207,7 +220,30 @@ function ProductDetailContent() {
             ))}
           </div>
         )}
+        {/* CUSTOMIZATION / NOTES */}
+<div className="mt-8">
+  <h3 className="font-bold mb-2">
+    Special Instructions
+  </h3>
+
+  <textarea
+    value={customization}
+    onChange={(e) => setCustomization(e.target.value)}
+    placeholder="Add extra notes like no onion, extra spicy, etc."
+    rows={3}
+    className="w-full rounded-xl border p-3 text-sm focus:outline-none focus:ring-2"
+    style={{
+      borderColor: "#eee",
+      focusRingColor: Restaurant?.restaurant?.theme,
+    }}
+  />
+
+  <p className="text-xs text-gray-400 mt-1">
+    Optional – this will be sent to the kitchen
+  </p>
+</div>
       </div>
+
 
       {/* FOOTER */}
       <div className="fixed bottom-0 inset-x-0 bg-white border-t">
@@ -221,7 +257,7 @@ function ProductDetailContent() {
           <button
             onClick={handleAddToCart}
             className="flex-1 text-white py-3 rounded-xl font-bold"
-            style={{ backgroundColor: Colors.brown }}
+            style={{ backgroundColor: Restaurant?.restaurant?.theme }}
           >
             Add to Cart
           </button>
