@@ -411,11 +411,11 @@ export default function CartPage() {
           <div className="space-y-3 text-base">
             <div className="flex justify-between text-gray-600">
               <span>Subtotal</span>
-              <span className="font-medium">${calculateSubtotal().toFixed(2)}</span>
+              <span className="font-medium">{Restaurant?.restaurant?.currency} {calculateSubtotal().toFixed(2)}</span>
             </div>
             <div className="border-t-2 pt-3 flex justify-between font-bold text-lg" style={{ color: Colors[`${Restaurant?.restaurant?.theme}`] }}>
               <span>Total</span>
-              <span>${calculateTotal().toFixed(2)}</span>
+              <span>{Restaurant?.restaurant?.currency} {calculateTotal().toFixed(2)}</span>
             </div>
           </div>
         </div>
