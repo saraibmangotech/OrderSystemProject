@@ -6,14 +6,16 @@ import Colors from "../assets/colors"
 
 
 export default function CartPage() {
-const [Restaurant, setRestaurant] = useState(null)
+  const [Restaurant, setRestaurant] = useState(null)
 
-useEffect(() => {
-  const data = localStorage.getItem("restaurantData")
-  if (data) {
-    setRestaurant(JSON.parse(data))
-  }
-}, [])
+  useEffect(() => {
+    const data = localStorage.getItem("restaurantData")
+    if (data) {
+      setRestaurant(JSON.parse(data))
+    }
+  }, [])
+  const [specialInstruction, setSpecialInstruction] = useState("");
+
   const [cart, setCart] = useState([])
   const [expandedItems, setExpandedItems] = useState({})
   const [tableNumber, setTableNumber] = useState("")
@@ -104,6 +106,12 @@ useEffect(() => {
       setShowUserPopup(true)
       return
     }
+    console.log(cart, 'cart')
+    const maxPrepTime = Math.max(
+      ...cart.map(item => item.prep_time_minutes ?? 0)
+    );
+
+    console.log("Max prep time:", maxPrepTime);
 
     const order = {
       id: `DQ-${Date.now()}`,
@@ -113,11 +121,12 @@ useEffect(() => {
       items: cart,
       subtotal: calculateSubtotal(),
       tip: calculateTip(),
-      estimate_time: 30,
+      estimate_time: maxPrepTime,
       total: calculateTotal(),
       paymentMethod,
       timestamp: new Date().toISOString(),
       status: "preparing",
+      orderSpecialInstruction: specialInstruction
     }
 
     const existingOrders = JSON.parse(localStorage.getItem("orders")) || []
@@ -211,7 +220,7 @@ useEffect(() => {
                           {item.spiceLevel && `${item.spiceLevel}`}
                         </p>
                         <p className="font-bold text-base" style={{ color: Colors[`${Restaurant?.restaurant?.theme}`] }}>
-                          ${(
+                          {Restaurant?.restaurant?.currency}  {(
                             ((item.customPrice || item.price) +
                               (item.selectedAddons?.reduce((sum, addon) => sum + addon.price, 0) || 0)) *
                             item.quantity
@@ -272,34 +281,99 @@ useEffect(() => {
                                   {group.name}
                                   {group.required && <span className="text-red-500 ml-1">*</span>}
                                 </h4>
+
                                 <p className="text-xs text-gray-500 mb-3">
                                   Select {group.min_selection}
-                                  {group.max_selection > group.min_selection ? `-${group.max_selection}` : ""}
+                                  {group.max_selection > group.min_selection
+                                    ? `-${group.max_selection}`
+                                    : ""}
                                 </p>
 
                                 <div className="space-y-2">
                                   {group.addons.map((addon) => {
                                     const isSelected = isAddonSelected(itemIndex, addon._id)
+
+                                    const selectedCount = item?.selectedAddons?.filter(
+                                      (a) => a.groupId === group._id
+                                    ).length || 0
+
+
+                                    const disableCheckbox =
+                                      !isSelected && selectedCount >= group.max_selection
+
                                     return (
-                                      <label
-                                        key={addon._id}
-                                        className="flex items-center p-3 bg-white rounded-lg border-2 border-gray-200 hover:border-current transition-colors"
-                                        style={{ borderColor: isSelected ? Colors[`${Restaurant?.restaurant?.theme}`] : undefined }}
-                                      >
-                                        <input
-                                          type="checkbox"
-                                          checked={isSelected}
-                                          onChange={() => toggleAddon(itemIndex, addon._id, group._id)}
-                                          className="w-5 h-5 rounded cursor-pointer"
-                                          style={{ accentColor: Colors[`${Restaurant?.restaurant?.theme}`] }}
-                                        />
-                                        <span className="ml-3 flex-1 text-sm text-gray-800 font-medium">
-                                          {addon.name}
-                                        </span>
-                                        <span className="text-sm font-semibold" style={{ color: Colors[`${Restaurant?.restaurant?.theme}`] }}>
-                                          +${addon.price.toFixed(2)}
-                                        </span>
-                                      </label>
+                                  <label
+  key={addon._id}
+  className={`flex items-center justify-between p-4 rounded-2xl cursor-pointer transition-all border-2
+    ${isSelected ? "" : "bg-gray-50 hover:bg-gray-100"}
+    ${disableCheckbox ? "opacity-50 cursor-not-allowed" : ""}
+  `}
+  style={{
+    borderColor: isSelected
+      ? Colors[Restaurant?.restaurant?.theme]
+      : "transparent",
+    backgroundColor: isSelected
+      ? `${Colors[Restaurant?.restaurant?.theme]}20`
+      : undefined,
+  }}
+>
+  <div className="relative flex items-center">
+    {/* Hidden native checkbox (logic unchanged) */}
+    <input
+      type="checkbox"
+      checked={isSelected}
+      disabled={disableCheckbox}
+      onChange={() =>
+        toggleAddon(itemIndex, addon._id, group._id)
+      }
+      className="peer sr-only"
+    />
+
+    {/* Custom checkbox UI */}
+    <div
+      className={`h-5 w-5 flex items-center justify-center border-2 rounded-md transition-all
+        ${disableCheckbox ? "opacity-50" : ""}
+      `}
+      style={{
+        borderColor: isSelected
+          ? Colors[Restaurant?.restaurant?.theme]
+          : "#D1D5DB",
+        backgroundColor: isSelected
+          ? Colors[Restaurant?.restaurant?.theme]
+          : "transparent",
+      }}
+    >
+      {isSelected && (
+        <svg
+          className="w-3.5 h-3.5 text-white"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          strokeWidth="3"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M5 13l4 4L19 7"
+          />
+        </svg>
+      )}
+    </div>
+
+    &nbsp;&nbsp;
+    <span className="text-sm font-semibold text-gray-800">
+      {addon.name}
+    </span>
+  </div>
+
+  <span
+    className="text-sm font-bold"
+    style={{ color: Colors[Restaurant?.restaurant?.theme] }}
+  >
+    + {Restaurant?.restaurant?.currency} {addon.price.toFixed(2)}
+  </span>
+</label>
+
                                     )
                                   })}
                                 </div>
@@ -307,6 +381,7 @@ useEffect(() => {
                             ))}
                           </div>
                         )}
+
                       </div>
                     )}
                   </div>
@@ -314,6 +389,20 @@ useEffect(() => {
               ))}
             </div>
           )}
+        </div>
+        {/* Special Instructions */}
+        <div className=" pb-4">
+          <label className="block text-xs font-bold text-black-400 uppercase tracking-wider mb-2">
+            Special Instructions
+          </label>
+
+          <textarea
+            value={specialInstruction}
+            onChange={(e) => setSpecialInstruction(e.target.value)}
+            placeholder="e.g. No onions, extra spicy, cut in halves..."
+            rows={3}
+            className="w-full resize-none rounded-2xl border-2 border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-gray-400 transition-all"
+          />
         </div>
 
         {/* Order Summary */}

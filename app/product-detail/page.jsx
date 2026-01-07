@@ -12,7 +12,11 @@ const Skeleton = ({ className }) => (
 
 function ProductDetailContent() {
   const router = useRouter()
+  let Restaurant = localStorage.getItem('restaurantData')
+  Restaurant = JSON.parse(Restaurant)
   const [product, setProduct] = useState(null)
+  const [customization, setCustomization] = useState("")
+
   const [loading, setLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
   const [selectedAddons, setSelectedAddons] = useState([])
@@ -48,23 +52,32 @@ function ProductDetailContent() {
 
   const toggleAddon = (addon, group) => {
     setSelectedAddons((prev) => {
-      const isSelected = prev.find((a) => a._id === addon._id)
+      const isSelected = prev.some((a) => a._id === addon._id);
 
-      if (group.selection_type === "single") {
-        const others = prev.filter((a) => a.groupId !== group._id)
-        return isSelected
-          ? others
-          : [...others, { ...addon, groupId: group._id, groupName: group.name }]
+      // remove if already selected
+      if (isSelected) {
+        return prev.filter((a) => a._id !== addon._id);
       }
 
-      if (isSelected) return prev.filter((a) => a._id !== addon._id)
+      // single selection (radio)
+      if (group.selection_type === "single") {
+        return [
+          ...prev.filter((a) => a.groupId !== group._id),
+          { ...addon, groupId: group._id },
+        ];
+      }
 
-      const count = prev.filter((a) => a.groupId === group._id).length
-      if (group.max_selection && count >= group.max_selection) return prev
+      // multiple with limit
+      const sameGroup = prev.filter((a) => a.groupId === group._id);
 
-      return [...prev, { ...addon, groupId: group._id, groupName: group.name }]
-    })
-  }
+      if (sameGroup.length >= group.max_selection) {
+        return prev; // 🚫 block extra
+      }
+
+      return [...prev, { ...addon, groupId: group._id }];
+    });
+  };
+
 
   const calculateTotal = () => {
     if (!product) return 0
@@ -85,12 +98,14 @@ function ProductDetailContent() {
       image: product.image_urls?.[0],
       quantity,
       selectedAddons,
+      customization, // 👈 ADDED HERE
     })
 
     localStorage.setItem("cart", JSON.stringify(cart))
     showSuccessToast("Added to cart successfully!")
     router.push("/menu")
   }
+
 
   if (loading) {
     return (
@@ -101,6 +116,7 @@ function ProductDetailContent() {
       </div>
     )
   }
+  console.log(product, 'product');
 
   if (!product) return null
 
@@ -112,11 +128,11 @@ function ProductDetailContent() {
           onClick={() => router.back()}
           className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
         >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
         </button>
-       <h1 className="text-xl font-bold text-gray-800">Product Detail</h1>
+        <h1 className="text-xl font-bold text-gray-800">Product Detail</h1>
         <div className="w-10" />
       </div>
 
@@ -136,12 +152,18 @@ function ProductDetailContent() {
         <div className="flex justify-between items-start gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold">{product.name}</h1>
+            {product?.description && (
+              <p className="mt-2 text-sm text-gray-600 leading-relaxed">
+                {product.description}
+              </p>
+            )}
             <p
               className="text-xl font-bold mt-1"
-              style={{ color: Colors.brown }}
+              style={{ color: Restaurant?.restaurant?.theme }}
             >
               ${product.base_price.toFixed(2)}
             </p>
+
           </div>
 
           <div className="flex items-center bg-gray-100 rounded-full p-1">
@@ -166,48 +188,134 @@ function ProductDetailContent() {
           <div className="mt-8 space-y-8">
             {product.addons.map((group) => (
               <div key={group._id}>
-                <h3 className="font-bold mb-3">{group.name}</h3>
+
+                <div className="flex justify-between items-center">
+                  <p className="text-xs font-bold text-gray-400 uppercase">{group.name}</p>
+                  {group.selection_type !== "single" && group.max_selection && (
+                    <p className="text-sm text-gray-500 mb-3">
+                      Max {group.max_selection}
+                    </p>
+                  )}
+                </div>
                 <div className="space-y-3">
                   {group.addons.map((addon) => {
                     const isSelected = selectedAddons.some(
                       (a) => a._id === addon._id
-                    )
+                    );
+
+                    const selectedInGroup = selectedAddons.filter(
+                      (a) => a.groupId === group._id
+                    );
+
+                    const disableCheckbox =
+                      group.selection_type !== "single" &&
+                      !isSelected &&
+                      selectedInGroup.length >= group.max_selection;
+
                     return (
                       <label
                         key={addon._id}
-                        className={`flex justify-between items-center p-4 rounded-xl border cursor-pointer ${
-                          isSelected
-                            ? "bg-gray-50"
-                            : "bg-white"
-                        }`}
+                        className={`flex justify-between items-center p-4 rounded-xl border transition-all cursor-pointer
+                  ${isSelected ? "bg-gray-50" : "bg-white"}
+                  ${disableCheckbox ? "opacity-50 cursor-not-allowed" : ""}
+                `}
                         style={{
                           borderColor: isSelected
-                            ? Colors.brown
+                            ? Restaurant?.restaurant?.theme
                             : "#eee",
                         }}
                       >
-                        <input
-                          type={group.selection_type === "single" ? "radio" : "checkbox"}
-                          checked={isSelected}
-                          className="w-5 h-5 rounded cursor-pointer" style={{ accentColor: Colors.brown }}
-                          onChange={() => toggleAddon(addon, group)}
-                        />
-                        <span className="flex-1 ml-3">{addon.name}</span>
+                        {/* Custom checkbox / radio */}
+                        <div className="flex items-center gap-3">
+                          <div className="relative flex items-center">
+                            <input
+                              type={
+                                group.selection_type === "single"
+                                  ? "radio"
+                                  : "checkbox"
+                              }
+                              checked={isSelected}
+                              disabled={disableCheckbox}
+                              onChange={() => toggleAddon(addon, group)}
+                              className="peer sr-only"
+                            />
+
+                            <div
+                              className={`h-5 w-5 flex items-center justify-center border-2 transition-all
+                        ${group.selection_type === "single"
+                                  ? "rounded-full"
+                                  : "rounded-md"
+                                }
+                      `}
+                              style={{
+                                borderColor: isSelected
+                                  ? Restaurant?.restaurant?.theme
+                                  : "#D1D5DB",
+                                backgroundColor: isSelected
+                                  ? Restaurant?.restaurant?.theme
+                                  : "transparent",
+                              }}
+                            >
+                              {isSelected && (
+                                <svg
+                                  className="w-3.5 h-3.5 text-white"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                  strokeWidth="3"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                              )}
+                            </div>
+                          </div>
+
+                          <span className="font-medium">{addon.name}</span>
+                        </div>
+
                         <span
                           className="font-bold"
-                          style={{ color: Colors.brown }}
+                          style={{ color: Restaurant?.restaurant?.theme }}
                         >
                           +${Number(addon.price).toFixed(2)}
                         </span>
                       </label>
-                    )
+                    );
                   })}
                 </div>
               </div>
             ))}
           </div>
         )}
+
+        {/* CUSTOMIZATION / NOTES */}
+        <div className="mt-8">
+          <h3 className="font-bold mb-2">
+            Special Instructions
+          </h3>
+
+          <textarea
+            value={customization}
+            onChange={(e) => setCustomization(e.target.value)}
+            placeholder="Add extra notes like no onion, extra spicy, etc."
+            rows={3}
+            className="w-full rounded-xl border p-3 text-sm focus:outline-none focus:ring-2"
+            style={{
+              borderColor: "#eee",
+              focusRingColor: Restaurant?.restaurant?.theme,
+            }}
+          />
+
+          <p className="text-xs text-gray-400 mt-1">
+            Optional – this will be sent to the kitchen
+          </p>
+        </div>
       </div>
+
 
       {/* FOOTER */}
       <div className="fixed bottom-0 inset-x-0 bg-white border-t">
@@ -221,7 +329,7 @@ function ProductDetailContent() {
           <button
             onClick={handleAddToCart}
             className="flex-1 text-white py-3 rounded-xl font-bold"
-            style={{ backgroundColor: Colors.brown }}
+            style={{ backgroundColor: Restaurant?.restaurant?.theme }}
           >
             Add to Cart
           </button>

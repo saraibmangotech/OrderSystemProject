@@ -154,7 +154,7 @@ function OrderDetailInner() {
                       <span>{item.quantity}×</span>
                       <span>{item.name}</span>
                       <span className="font-bold ml-1" style={{ color: Colors[`${Restaurant?.restaurant?.theme}`] }}>
-                        ${((item.base_price || item.price) * item.quantity).toFixed(2)}
+                        {Restaurant?.restaurant?.currency} {((item.base_price || item.price) * item.quantity).toFixed(2)}
                       </span>
                     </div>
 
@@ -168,7 +168,7 @@ function OrderDetailInner() {
                             style={{ backgroundColor: `${Colors[`${Restaurant?.restaurant?.theme}`]}10`, color: Colors[`${Restaurant?.restaurant?.theme}`] }}
                           >
                             <span>+{addon.name}</span>
-                            <span className="font-bold ml-1">${addon.price.toFixed(2)}</span>
+                            <span className="font-bold ml-1">{Restaurant?.restaurant?.currency} {addon.price.toFixed(2)}</span>
                           </div>
                         ))}
                       </div>
@@ -185,12 +185,12 @@ function OrderDetailInner() {
 
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Subtotal</span>
-                <span>${order.subtotal.toFixed(2)}</span>
+                <span>{Restaurant?.restaurant?.currency} {order.subtotal.toFixed(2)}</span>
               </div>
 
               <div className="border-t pt-3 flex justify-between font-bold text-lg">
                 <span>Total Paid</span>
-                <span>${order.total.toFixed(2)}</span>
+                <span>{Restaurant?.restaurant?.currency} {order.total.toFixed(2)}</span>
               </div>
             </div>
 
