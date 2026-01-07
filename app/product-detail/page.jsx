@@ -12,8 +12,7 @@ const Skeleton = ({ className }) => (
 
 function ProductDetailContent() {
   const router = useRouter()
-  let Restaurant = localStorage.getItem('restaurantData')
-  Restaurant = JSON.parse(Restaurant)
+
   const [product, setProduct] = useState(null)
   const [customization, setCustomization] = useState("")
 
@@ -21,6 +20,15 @@ function ProductDetailContent() {
   const [quantity, setQuantity] = useState(1)
   const [selectedAddons, setSelectedAddons] = useState([])
   const [tableNumber, setTableNumber] = useState("")
+  const [Restaurant, setRestaurant] = useState(null)
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    const restaurantData = localStorage.getItem("restaurantData")
+    if (restaurantData) {
+      setRestaurant(JSON.parse(restaurantData))
+    }
+  }, [])
 
   useEffect(() => {
     const table = localStorage.getItem("tableNumber")
