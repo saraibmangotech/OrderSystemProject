@@ -10,6 +10,8 @@ import Colors from "../assets/colors"
 const Skeleton = ({ className }) => <div className={`animate-pulse rounded-xl bg-gray-300/70 ${className}`} />
 
 function MenuContent() {
+  const [specialInstruction, setSpecialInstruction] = useState("");
+
   // ---- States ----
   const [tableNumber, setTableNumber] = useState("")
   const [activeCategory, setActiveCategory] = useState("all")
@@ -49,7 +51,7 @@ function MenuContent() {
         "https://scanserve.mangotech-api.com/api/v1/restaurants/694fadd4e6107f3236d79fcc/694fadfce6107f3236d79fd4/details",
       )
       setData(res?.data?.data)
-      localStorage.setItem('restaurantData',JSON.stringify(res?.data?.data))
+      localStorage.setItem('restaurantData', JSON.stringify(res?.data?.data))
     } catch (err) {
       console.log(err)
     } finally {
@@ -141,6 +143,7 @@ function MenuContent() {
         quantity: 1,
         addons: item.addons || [],
         selectedAddons: selectedExtras,
+        specialInstruction:specialInstruction
       })
       showSuccessToast("Product added to your cart")
     }
@@ -295,6 +298,20 @@ function MenuContent() {
                   </div>
                 )
               })}
+            </div>
+            {/* Special Instructions */}
+            <div className="px-6 pb-4">
+              <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                Special Instructions
+              </label>
+
+              <textarea
+                value={specialInstruction}
+                onChange={(e) => setSpecialInstruction(e.target.value)}
+                placeholder="e.g. No onions, extra spicy, cut in halves..."
+                rows={3}
+                className="w-full resize-none rounded-2xl border-2 border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-gray-400 transition-all"
+              />
             </div>
 
             {/* Footer Buttons */}

@@ -14,6 +14,8 @@ useEffect(() => {
     setRestaurant(JSON.parse(data))
   }
 }, [])
+const [specialInstruction, setSpecialInstruction] = useState("");
+
   const [cart, setCart] = useState([])
   const [expandedItems, setExpandedItems] = useState({})
   const [tableNumber, setTableNumber] = useState("")
@@ -118,6 +120,7 @@ useEffect(() => {
       paymentMethod,
       timestamp: new Date().toISOString(),
       status: "preparing",
+      orderSpecialInstruction:specialInstruction
     }
 
     const existingOrders = JSON.parse(localStorage.getItem("orders")) || []
@@ -315,6 +318,20 @@ useEffect(() => {
             </div>
           )}
         </div>
+{/* Special Instructions */}
+<div className=" pb-4">
+  <label className="block text-xs font-bold text-black-400 uppercase tracking-wider mb-2">
+    Special Instructions
+  </label>
+
+  <textarea
+    value={specialInstruction}
+    onChange={(e) => setSpecialInstruction(e.target.value)}
+    placeholder="e.g. No onions, extra spicy, cut in halves..."
+    rows={3}
+    className="w-full resize-none rounded-2xl border-2 border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-gray-400 transition-all"
+  />
+</div>
 
         {/* Order Summary */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
