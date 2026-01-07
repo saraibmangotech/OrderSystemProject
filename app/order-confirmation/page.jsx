@@ -3,20 +3,51 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Colors from "../assets/colors"
+import moment from "moment"
 
 export default function OrderConfirmationPage() {
 
   const [order, setOrder] = useState(null)
   const [currentStatus, setCurrentStatus] = useState("preparing")
   const router = useRouter()
-const [Restaurant, setRestaurant] = useState(null)
+  const [Restaurant, setRestaurant] = useState(null)
 
-useEffect(() => {
-  const data = localStorage.getItem("restaurantData")
-  if (data) {
-    setRestaurant(JSON.parse(data))
+  const [remainingTime, setRemainingTime] = useState("")
+  const getRemainingTime = (order) => {
+    if (!order?.timestamp || !order?.estimate_time) return "00:00"
+    let Restaurant = localStorage.getItem('restaurantData')
+    Restaurant = JSON.parse(Restaurant)
+    const placedAt = moment(order.timestamp)
+    const estimateMinutes = parseInt(order.estimate_time)
+    const readyAt = placedAt.clone().add(estimateMinutes, "minutes")
+
+    const diffMs = readyAt.diff(moment())
+    if (diffMs <= 0) return "Ready"
+
+    const duration = moment.duration(diffMs)
+    const minutes = String(Math.floor(duration.asMinutes())).padStart(2, "0")
+    const seconds = String(duration.seconds()).padStart(2, "0")
+
+    return `${minutes}:${seconds}`
   }
-}, [])
+
+  useEffect(() => {
+    if (!order) return
+
+    const update = () => {
+      setRemainingTime(getRemainingTime(order))
+    }
+
+    update()
+    const interval = setInterval(update, 1000)
+    return () => clearInterval(interval)
+  }, [order])
+  useEffect(() => {
+    const data = localStorage.getItem("restaurantData")
+    if (data) {
+      setRestaurant(JSON.parse(data))
+    }
+  }, [])
   useEffect(() => {
     const savedOrder = localStorage.getItem("currentOrder")
     if (savedOrder) {
@@ -25,6 +56,7 @@ useEffect(() => {
       router.push("/")
     }
   }, [router])
+
 
   useEffect(() => {
     // Simulate order status progression
@@ -76,7 +108,12 @@ useEffect(() => {
       {/* Tic Tac Toe Game */}
       {/* Confirmation Title */}
       <h1 className="text-2xl font-bold text-gray-800 mb-2 text-balance">Order Confirmed!</h1>
-
+      <div className="text-center rounded-xl py-4 px-5" style={{ backgroundColor: `${Colors[`${Restaurant?.restaurant?.theme}`]}10` }}>
+        <p className="text-xs text-gray-500">Estimated Time</p>
+        <p className="text-2xl font-bold mt-1" style={{ color: Colors[`${Restaurant?.restaurant?.theme}`] }}>
+          {remainingTime === "Ready" ? "Ready 🍽️" : remainingTime}
+        </p>
+      </div>
       {/* Order Number */}
       <p className="text-sm text-gray-600 mb-8">
         Order <span className="font-semibold">#{order.id}</span>
@@ -156,7 +193,7 @@ function CookingAnimation() {
 // Tic Tac Toe Component
 function TicTacToe() {
   const [board, setBoard] = useState(Array(9).fill(null))
-   let Restaurant = localStorage.getItem('restaurantData')
+  let Restaurant = localStorage.getItem('restaurantData')
   Restaurant = JSON.parse(Restaurant)
   const [xIsNext, setXIsNext] = useState(true)
 

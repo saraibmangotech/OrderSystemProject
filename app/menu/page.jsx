@@ -111,6 +111,7 @@ function MenuContent() {
       // Flattening the nested addons structure for the UI
       const flattenedAddons = item.addons.flatMap((group) =>
         group.addons.map((addon) => ({
+          ...item,
           ...addon,
           groupName: group.name,
           selectionType: group.selection_type,
@@ -136,6 +137,7 @@ function MenuContent() {
     } else {
       const addonsPrice = selectedExtras.reduce((sum, addon) => sum + (Number(addon.price) || 0), 0)
       existing.push({
+        ...item,
         _id: item._id,
         name: item.name,
         price: item.base_price + addonsPrice,
@@ -143,7 +145,7 @@ function MenuContent() {
         quantity: 1,
         addons: item.addons || [],
         selectedAddons: selectedExtras,
-        specialInstruction:specialInstruction
+        specialInstruction: specialInstruction
       })
       showSuccessToast("Product added to your cart")
     }
@@ -212,127 +214,196 @@ function MenuContent() {
                 <p className="text-sm text-gray-500">{selectedProductForAddons.name}</p>
               </div>
               <button onClick={() => setShowAddonsPopup(false)} className="text-gray-400">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                ✕
               </button>
             </div>
 
-            {/* Grouped Addons List */}
+            {/* Body */}
             <div className="overflow-y-auto p-6 space-y-6">
+
               {Object.values(
                 selectedProductForAddons.flattenedAddons.reduce((acc, addon) => {
-                  // Group addons by groupName
                   if (!acc[addon.groupName]) acc[addon.groupName] = [];
                   acc[addon.groupName].push(addon);
                   return acc;
                 }, {})
               ).map((addonsInGroup, idx) => {
                 const groupName = addonsInGroup[0].groupName;
+                const maxSelection = addonsInGroup[0].maxSelection;
+
                 return (
                   <div key={groupName + idx} className="space-y-3">
-                    {/* Group Heading */}
+                    {/* Group Header */}
                     <div className="flex justify-between items-center">
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{groupName}</p>
+                      <p className="text-xs font-bold text-gray-400 uppercase">{groupName}</p>
                       <span className="text-[10px] bg-gray-100 px-2 py-1 rounded-full text-gray-500">
                         {addonsInGroup[0].selectionType === "single"
                           ? "Choose 1"
-                          : `Max ${addonsInGroup[0].maxSelection}`}
+                          : `Max ${maxSelection}`}
                       </span>
                     </div>
 
-                    {/* Addons in this group */}
+                    {/* Addons */}
                     <div className="space-y-2">
-                      {addonsInGroup.map((addon) => (
-                        <label
-                          key={addon._id}
-                          className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl cursor-pointer hover:bg-gray-100 transition-all border-2 border-transparent"
-                          style={{
-                            borderColor: selectedAddons.find((a) => a._id === addon._id) ? Colors[`${data?.restaurant?.theme}`] : undefined,
-                            backgroundColor: selectedAddons.find((a) => a._id === addon._id) ? `${Colors[`${data?.restaurant?.theme}`]}20` : undefined,
-                          }}
-                        >
-                          <div className="flex items-center gap-4">
+                      {addonsInGroup.map((addon) => {
+                        const selectedInGroup = selectedAddons.filter(
+                          (a) => a.groupId === addon.groupId
+                        );
+
+                        const isChecked = selectedAddons.some(
+                          (a) => a._id === addon._id
+                        );
+
+                        const disableCheckbox =
+                          addon.selectionType !== "single" &&
+                          !isChecked &&
+                          selectedInGroup.length >= addon.maxSelection;
+
+                        return (
+                          <label
+                            key={addon._id}
+                            className={`flex items-center justify-between p-4 rounded-2xl cursor-pointer transition-all border-2
+                        ${isChecked ? "" : "bg-gray-50 hover:bg-gray-100"}
+                        ${disableCheckbox ? "opacity-50 cursor-not-allowed" : ""}
+                      `}
+                            style={{
+                              borderColor: isChecked
+                                ? Colors[data?.restaurant?.theme]
+                                : "transparent",
+                              backgroundColor: isChecked
+                                ? `${Colors[data?.restaurant?.theme]}20`
+                                : undefined,
+                            }}
+                          >
                             <div className="relative flex items-center">
                               <input
                                 type={addon.selectionType === "single" ? "radio" : "checkbox"}
                                 name={`addon-group-${addon.groupId}`}
-                                className="peer h-6 w-6 cursor-pointer appearance-none rounded-lg border-2 border-gray-300 transition-all"
-                                style={{
-                                  borderColor: selectedAddons.find((a) => a._id === addon._id) ? Colors[`${data?.restaurant?.theme}`] : undefined,
-                                  backgroundColor: selectedAddons.find((a) => a._id === addon._id) ? Colors[`${data?.restaurant?.theme}`] : undefined,
-                                }}
-                                checked={!!selectedAddons.find((a) => a._id === addon._id)}
+                                disabled={disableCheckbox}
+                                checked={isChecked}
                                 onChange={() => {
                                   if (addon.selectionType === "single") {
                                     setSelectedAddons((prev) => [
-                                      ...prev.filter(
-                                        (a) =>
-                                          !selectedProductForAddons.flattenedAddons.find((ga) => ga.groupId === a.groupId),
-                                      ),
+                                      ...prev.filter((a) => a.groupId !== addon.groupId),
                                       addon,
-                                    ])
+                                    ]);
                                   } else {
-                                    toggleAddon(addon)
+                                    setSelectedAddons((prev) => {
+                                      const alreadySelected = prev.some((a) => a._id === addon._id);
+
+                                      if (alreadySelected) {
+                                        return prev.filter((a) => a._id !== addon._id);
+                                      }
+
+                                      const sameGroup = prev.filter(
+                                        (a) => a.groupId === addon.groupId
+                                      );
+
+                                      if (sameGroup.length >= addon.maxSelection) {
+                                        return prev;
+                                      }
+
+                                      return [...prev, addon];
+                                    });
                                   }
                                 }}
+                                className="peer sr-only"
                               />
-                              <svg
-                                className="absolute w-4 h-4 text-white pointer-events-none hidden peer-checked:block left-1"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                strokeWidth="4"
+
+                              {/* Custom checkbox */}
+                              <div
+                                className={`h-5 w-5 flex items-center justify-center border-2 transition-all
+      ${addon.selectionType === "single" ? "rounded-full" : "rounded-md"}
+      ${disableCheckbox ? "opacity-50" : ""}
+    `}
+                                style={{
+                                  borderColor: isChecked
+                                    ? Colors[data?.restaurant?.theme]
+                                    : "#D1D5DB",
+                                  backgroundColor: isChecked
+                                    ? Colors[data?.restaurant?.theme]
+                                    : "transparent",
+                                }}
                               >
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                              </svg>
+                                {/* White check icon */}
+                                {isChecked && (
+                                  <svg
+                                    className="w-3.5 h-3.5 text-white"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth="3"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M5 13l4 4L19 7"
+                                    />
+                                  </svg>
+                                )}
+                              </div>
+                              &nbsp; &nbsp;  <span className="font-semibold text-gray-800">
+                                {addon.name}
+                              </span>
                             </div>
-                            <span className="font-semibold text-gray-800">{addon.name}</span>
-                          </div>
-                          <span className="font-bold" style={{ color: Colors[`${data?.restaurant?.theme}`] }}>
-                            +${Number(addon.price).toFixed(2)}
-                          </span>
-                        </label>
-                      ))}
+
+
+                            <span
+                              className="font-bold"
+                              style={{ color: Colors[data?.restaurant?.theme] }}
+                            >
+                              + {data?.restaurant?.currency} {Number(addon.price).toFixed(2)}
+                            </span>
+                          </label>
+                        );
+                      })}
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
+
             {/* Special Instructions */}
             <div className="px-6 pb-4">
-              <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-bold text-gray-400 uppercase mb-2">
                 Special Instructions
               </label>
-
               <textarea
                 value={specialInstruction}
                 onChange={(e) => setSpecialInstruction(e.target.value)}
-                placeholder="e.g. No onions, extra spicy, cut in halves..."
+                placeholder="e.g. No onions, extra spicy..."
                 rows={3}
-                className="w-full resize-none rounded-2xl border-2 border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-gray-400 transition-all"
+                className="w-full rounded-2xl border-2 border-gray-200 bg-gray-50 px-4 py-3 text-sm"
               />
             </div>
 
-            {/* Footer Buttons */}
+            {/* Footer */}
             <div className="p-6 border-t bg-gray-50 flex gap-3">
               <button
-                onClick={() => addToCartDirect(selectedProductForAddons, [])}
+                onClick={() => addToCartDirect(selectedProductForAddons, [], "")}
                 className="flex-1 bg-white border-2 border-gray-200 text-gray-600 rounded-2xl py-4 font-bold"
               >
                 Skip
               </button>
               <button
-                onClick={() => addToCartDirect(selectedProductForAddons, selectedAddons)}
-                className="flex-1 text-white rounded-2xl py-4 font-bold shadow-lg"
-                style={{ backgroundColor: Colors[`${data?.restaurant?.theme}`], boxShadow: `${Colors[`${data?.restaurant?.theme}`]}50 0px 4px 8px` }}
+                onClick={() =>
+                  addToCartDirect(
+                    selectedProductForAddons,
+                    selectedAddons,
+                    specialInstruction
+                  )
+                }
+                className="flex-1 text-white rounded-2xl py-4 font-bold"
+                style={{ backgroundColor: Colors[data?.restaurant?.theme] }}
               >
                 Submit
               </button>
             </div>
+
           </div>
         </div>
       )}
+
 
 
 
@@ -390,7 +461,7 @@ function MenuContent() {
                               <span className="text-gray-700">
                                 {item.quantity}x {item.name}
                               </span>
-                              <span className="font-medium">${(unitPrice * item.quantity).toFixed(2)}</span>
+                              <span className="font-medium">{data?.restaurant?.currency} {(unitPrice * item.quantity).toFixed(2)}</span>
                             </div>
 
                             {/* Selected Addons */}
@@ -399,7 +470,7 @@ function MenuContent() {
                                 {item.selectedAddons.map((addon) => (
                                   <div key={addon._id} className="flex justify-between text-xs text-gray-500">
                                     <span>+ {addon.name}</span>
-                                    <span>${addon.price.toFixed(2)}</span>
+                                    <span>{data?.restaurant?.currency} {addon.price.toFixed(2)}</span>
                                   </div>
                                 ))}
                               </div>
@@ -412,7 +483,7 @@ function MenuContent() {
                     {/* Total */}
                     <div className="pt-3 border-t border-dashed flex justify-between items-center font-bold text-gray-800">
                       <span>Total Paid</span>
-                      <span>${order.total.toFixed(2)}</span>
+                      <span>{data?.restaurant?.currency} {order.total.toFixed(2)}</span>
                     </div>
                   </div>
                 )
@@ -458,7 +529,7 @@ function MenuContent() {
                                 className="text-[9px] font-bold ml-1"
                                 style={{ color: Colors[`${data?.restaurant?.theme}`] }}
                               >
-                                (${Number(addon.price).toFixed(2)})
+                                ({data?.restaurant?.currency} {Number(addon.price).toFixed(2)})
                               </span>
                             </span>
                             <button
@@ -480,7 +551,7 @@ function MenuContent() {
                       </div>
                     )}
                     <p className="font-bold text-sm mt-1" style={{ color: Colors[`${data?.restaurant?.theme}`] }}>
-                      ${Number.parseFloat(item?.price).toFixed(2)}
+                      {data?.restaurant?.currency}  {Number.parseFloat(item?.price).toFixed(2)}
                     </p>
                   </div>
                   <div className="flex items-center bg-gray-100 rounded-full h-8 px-2">
@@ -498,7 +569,7 @@ function MenuContent() {
             <div className="p-6 bg-gray-50 border-t">
               <div className="flex justify-between items-center mb-4">
                 <span className="text-gray-500 font-medium">Subtotal</span>
-                <span className="text-xl font-bold text-gray-800">${getCartTotal().toFixed(2)}</span>
+                <span className="text-xl font-bold text-gray-800">{data?.restaurant?.currency}  {getCartTotal().toFixed(2)}</span>
               </div>
               <button
                 onClick={() => router.push("/cart")}
@@ -532,7 +603,11 @@ function MenuContent() {
             </div>
 
             <button
-              onClick={() => setShowCartDrawer(true)}
+              onClick={() => {
+                if (cart.length > 0) {
+                  setShowCartDrawer(true)
+                }
+              }}
               className="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-gray-100"
             >
               <svg
@@ -603,7 +678,7 @@ function MenuContent() {
 
       {/* PRODUCTS */}
       <div className="px-5">
-        <h2 className="text-xl font-bold mb-4 text-gray-800">Popular Items</h2>
+        <h2 className="text-xl font-bold mb-4 text-gray-800">{allCategories?.find((item => item?._id == activeCategory))?.name}</h2>
         <div className="grid grid-cols-2 gap-4 pb-4">
           {loading
             ? Array.from({ length: 6 }).map((_, i) => (
@@ -637,7 +712,7 @@ function MenuContent() {
                     </div>
                     <div className="p-3 pb-4">
                       <h3 className="font-semibold text-sm text-gray-800 mb-1 line-clamp-2">{item.name}</h3>
-                      <p className=" font-bold text-base mb-2" style={{ color: Colors[`${data?.restaurant?.theme}`] }}>${item.base_price.toFixed(2)}</p>
+                      <p className=" font-bold text-base mb-2" style={{ color: Colors[`${data?.restaurant?.theme}`] }}>{data?.restaurant?.currency} {item.base_price.toFixed(2)}</p>
                     </div>
                     <div className="absolute bottom-3 right-3">
                       {qty === 0 ? (
@@ -744,7 +819,7 @@ function MenuContent() {
                     <span className="font-semibold">View Cart</span>
                   </div>
                   <span className="text-base sm:text-lg font-bold">
-                    ${getCartTotal().toFixed(2)}
+                    {data?.restaurant?.currency}  {getCartTotal().toFixed(2)}
                   </span>
                 </button>
 
