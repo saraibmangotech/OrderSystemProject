@@ -2,6 +2,8 @@
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { Html5Qrcode } from "html5-qrcode"
+import { requestNotificationPermission } from "../helpers";
+
 
 export default function WelcomePage() {
   const router = useRouter()
@@ -64,7 +66,9 @@ export default function WelcomePage() {
       }
     }
   }, [isScanning, router])
-
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
   return (
     <div className="page min-h-screen bg-white flex flex-col items-center justify-center p-6 safe-area-inset relative overflow-hidden font-poppins">
       {isScanning && (
