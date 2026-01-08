@@ -376,7 +376,14 @@
           grid-template-columns: repeat(3, 1fr);
         }
       }
-
+@media (max-width: 570px) {
+  .button-text {
+    font-size: 10px; /* smaller size */
+  }
+    .button-text2 {
+    display: none; /* smaller size */
+  }
+}
       .feature {
         padding: 18px;
       }
@@ -617,10 +624,10 @@
       <div class="container">
         <div class="nav">
           <a class="brand" href="#top" aria-label="ScanServe home">
-            <span class="brand-badge" aria-hidden="true">
-              <img src="/icon.svg" alt="" />
-            </span>
-            <span>ScanServe</span>
+       
+              <img src="/logo_dark.png" alt="" width="150px" />
+            
+           
           </a>
 
           <nav class="nav-links" aria-label="Primary">
@@ -632,8 +639,8 @@
           </nav>
 
           <div class="nav-cta">
-            <a class="btn btn-ghost" href="/menu" title="Preview the customer menu demo">View Demo Menu</a>
-            <a class="btn btn-primary" href="#trial" title="Start your free trial">Start Free Trial</a>
+            <a class="btn btn-ghost button-text button-text2" href="/menu" title="Preview the customer menu demo">View Demo Menu</a>
+            <a class="btn btn-primary  button-text" href="#trial" title="Start your free trial">Start Free Trial</a>
           </div>
         </div>
       </div>
@@ -1038,10 +1045,10 @@
         <div class="footer-grid">
           <div>
             <div class="brand" style="gap: 10px">
-              <span class="brand-badge" aria-hidden="true">
-                <img src="/icon.svg" alt="" />
-              </span>
-              <span>ScanServe</span>
+        
+              <img src="/logo_dark.png" alt="" width="150px" />
+            
+        
             </div>
             <div style="margin-top: 8px">
               QR ordering SaaS for restaurants — fast, friendly, and built for real service.
