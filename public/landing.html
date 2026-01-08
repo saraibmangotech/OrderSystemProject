@@ -9,7 +9,11 @@
       name="description"
       content="ScanServe is a SaaS QR ordering system for restaurants: scan QR, browse menu, customize items, table auto-detection, online payments, and POS integration. Simple enough for a child to order."
     />
-
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/logoIcon.png" />
+    <link rel="apple-touch-icon" href="/apple-icon.png" />
+ 
     <!-- Font (matches app theme intent) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -376,7 +380,14 @@
           grid-template-columns: repeat(3, 1fr);
         }
       }
-
+@media (max-width: 570px) {
+  .button-text {
+    font-size: 10px; /* smaller size */
+  }
+    .button-text2 {
+    display: none; /* smaller size */
+  }
+}
       .feature {
         padding: 18px;
       }
@@ -617,10 +628,7 @@
       <div class="container">
         <div class="nav">
           <a class="brand" href="#top" aria-label="ScanServe home">
-            <span class="brand-badge" aria-hidden="true">
-              <img src="/icon.svg" alt="" />
-            </span>
-            <span>ScanServe</span>
+              <img src="/logo_dark.png" alt="" width="150px" />
           </a>
 
           <nav class="nav-links" aria-label="Primary">
@@ -632,8 +640,8 @@
           </nav>
 
           <div class="nav-cta">
-            <a class="btn btn-ghost" href="/menu" title="Preview the customer menu demo">View Demo Menu</a>
-            <a class="btn btn-primary" href="#trial" title="Start your free trial">Start Free Trial</a>
+            <a class="btn btn-ghost button-text button-text2" href="/menu" title="Preview the customer menu demo">View Demo Menu</a>
+            <a class="btn btn-primary  button-text" href="#trial" title="Start your free trial">Start Free Trial</a>
           </div>
         </div>
       </div>
@@ -692,6 +700,9 @@
                 </span>
                 <span class="pill">
                   <span aria-hidden="true">🔌</span> POS Integration
+                </span>
+                <span class="pill">
+                  <span aria-hidden="true">🔔</span> Order Notifications
                 </span>
               </div>
 
@@ -811,6 +822,19 @@
               </div>
               <h3>POS integration</h3>
               <p>Connect ScanServe to your existing POS for smoother operations (sync items, route tickets, reconcile sales).</p>
+            </div>
+
+            <div class="card feature reveal">
+              <div class="icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                  <path d="M9 12h6" />
+                  <path d="M12 9v6" />
+                </svg>
+              </div>
+              <h3>Order completion notifications</h3>
+              <p>Staff can mark orders as complete, and guests receive instant push notifications — no more wondering when food is ready.</p>
             </div>
           </div>
         </div>
@@ -1038,10 +1062,7 @@
         <div class="footer-grid">
           <div>
             <div class="brand" style="gap: 10px">
-              <span class="brand-badge" aria-hidden="true">
-                <img src="/icon.svg" alt="" />
-              </span>
-              <span>ScanServe</span>
+            <img src="/logo_dark.png" alt="" width="150px" />
             </div>
             <div style="margin-top: 8px">
               QR ordering SaaS for restaurants — fast, friendly, and built for real service.
